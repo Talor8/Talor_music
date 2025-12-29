@@ -1,18 +1,18 @@
-﻿namespace Talor_music.Models
-{
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
+namespace Talor_music.Models
+{
     public class Artist
     {
         public int ArtistID { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "נא להזין שם אמן")]
         [StringLength(100)]
         [Display(Name = "שם האמן")]
         public string Name { get; set; }
 
-        // קשר 1:N - אמן אחד יצר הרבה אלבומים
-        public ICollection<Album> Albums { get; set; }
+        // Added '?' to make it optional during creation
+        public virtual ICollection<Album>? Albums { get; set; }
     }
 }

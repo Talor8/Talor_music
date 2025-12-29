@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Talor_music.Data;
 using Talor_music.Models;
@@ -25,24 +22,6 @@ namespace Talor_music.Controllers
             return View(await _context.Artist.ToListAsync());
         }
 
-        // GET: Artists/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var artist = await _context.Artist
-                .FirstOrDefaultAsync(m => m.ArtistID == id);
-            if (artist == null)
-            {
-                return NotFound();
-            }
-
-            return View(artist);
-        }
-
         // GET: Artists/Create
         public IActionResult Create()
         {
@@ -50,48 +29,36 @@ namespace Talor_music.Controllers
         }
 
         // POST: Artists/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ArtistID,Name")] Artist artist)
+        public async Task<IActionResult> Create([Bind("Name")] Artist artist)
         {
+            // If the model is valid (Name is present), save to DB
             if (ModelState.IsValid)
             {
                 _context.Add(artist);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            // If we get here, something failed; redisplay form
             return View(artist);
         }
 
         // GET: Artists/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
+            if (id == null) return NotFound();
             var artist = await _context.Artist.FindAsync(id);
-            if (artist == null)
-            {
-                return NotFound();
-            }
+            if (artist == null) return NotFound();
             return View(artist);
         }
 
-        // POST: Artists/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ArtistID,Name")] Artist artist)
         {
-            if (id != artist.ArtistID)
-            {
-                return NotFound();
-            }
+            if (id != artist.ArtistID) return NotFound();
 
             if (ModelState.IsValid)
             {
@@ -102,14 +69,8 @@ namespace Talor_music.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ArtistExists(artist.ArtistID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!_context.Artist.Any(e => e.ArtistID == artist.ArtistID)) return NotFound();
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -119,22 +80,12 @@ namespace Talor_music.Controllers
         // GET: Artists/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var artist = await _context.Artist
-                .FirstOrDefaultAsync(m => m.ArtistID == id);
-            if (artist == null)
-            {
-                return NotFound();
-            }
-
+            if (id == null) return NotFound();
+            var artist = await _context.Artist.FirstOrDefaultAsync(m => m.ArtistID == id);
+            if (artist == null) return NotFound();
             return View(artist);
         }
 
-        // POST: Artists/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -143,15 +94,9 @@ namespace Talor_music.Controllers
             if (artist != null)
             {
                 _context.Artist.Remove(artist);
+                await _context.SaveChangesAsync();
             }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool ArtistExists(int id)
-        {
-            return _context.Artist.Any(e => e.ArtistID == id);
         }
     }
 }
