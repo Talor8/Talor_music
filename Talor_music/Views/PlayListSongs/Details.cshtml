@@ -33,17 +33,58 @@
     </dl>
 </div>
 <div>
-    <form asp-action="AddSongToListAction">
-        <input type="hidden" asp-for="playListId" value="@Model.PlaylistSongID" />
-        <select class="select2">
-            @foreach(var song in ViewBag.Songs)
+    <form asp-action="AddSongToListAction" method="get">
+        <input type="hidden" name="playListId" value="@Model.PlaylistSongID" />
+        <select name="songId" class="select2">
+            @if(ViewBag.Songs != null)
+            {
+                foreach(var song in ViewBag.Songs)
                 {
-                <option asp-for="songId" value="@song.SongID">@song.Title</option>
+                    <option value="@song.SongID">@song.Title</option>
                 }
-            </select>
-            <button type="submit">Add Song</button>
+            }
+        </select>
+        <button type="submit" class="btn btn-sm btn-primary">Add Song</button>
     </form>
 </div>
+
+<div class="mt-4">
+    <h4>Songs in this playlist</h4>
+
+    @if (Model.Songs != null && Model.Songs.Any())
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Artist</th>
+                    <th>Genre</th>
+                    <th>Price</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model.Songs)
+                {
+                    <tr>
+                        <td>@s.Title</td>
+                        <td>@(s.Artist != null ? s.Artist.Name : "")</td>
+                        <td>@s.Genre</td>
+                        <td>@String.Format("{0:C}", s.Price)</td>
+                        <td>
+                            <a asp-controller="Songs" asp-action="Details" asp-route-id="@s.SongID">Details</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p><em>No songs in this playlist.</em></p>
+    }
+</div>
+
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.PlaylistSongID">Edit</a> |
     <a asp-action="Index">Back to List</a>

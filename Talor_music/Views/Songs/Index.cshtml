@@ -45,7 +45,8 @@
             <td>
                 <a asp-action="Edit" asp-route-id="@item.SongID">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.SongID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.SongID">Delete</a>
+                <a asp-action="Delete" asp-route-id="@item.SongID">Delete</a> |
+                <a asp-controller="PlayListSongs" asp-action="AddSongToPlayList" asp-route-songId="@item.SongID" class="btn btn-sm btn-outline-primary">Add to playlist</a>
             </td>
         </tr>
 }

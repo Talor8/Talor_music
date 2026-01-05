@@ -34,6 +34,8 @@ namespace Talor_music.Controllers
             }
 
             var playListSong = await _context.PlayListSong
+                .Include(p => p.Songs)
+                    .ThenInclude(s => s.Artist)
                 .FirstOrDefaultAsync(m => m.PlaylistSongID == id);
             if (playListSong == null)
             {
@@ -153,22 +155,33 @@ namespace Talor_music.Controllers
         //Harel Function to add song to playlist
         public async Task<IActionResult> AddSongToListAction(int playListId, int songId)
         {
-            var playList = await _context.PlayListSong.FindAsync(playListId);
+            var playList = await _context.PlayListSong
+                .Include(p => p.Songs)
+                .FirstOrDefaultAsync(p => p.PlaylistSongID == playListId);
             if (playList != null)
             {
                 var song = await _context.Song.FindAsync(songId);
                 if (song != null)
                 {
-                    playList.Songs.Add(song);
+                    if (playList.Songs == null)
+                        playList.Songs = new List<Song>();
+
+                    if (!playList.Songs.Any(s => s.SongID == songId))
+                    {
+                        playList.Songs.Add(song);
+                        await _context.SaveChangesAsync();
+                    }
                 }
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Details", new { Id = playListId });
+            return RedirectToAction("Details", new { id = playListId });
         }
+
         public async Task<IActionResult> AddSongToPlayList(int songId)
         {
-            return View(songId);
+            ViewBag.SongId = songId;
+            var playlists = await _context.PlayListSong.ToListAsync();
+            return View(playlists);
         }
 
         private bool PlayListSongExists(int id)

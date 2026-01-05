@@ -23,6 +23,7 @@ namespace Talor_music.Models
         public decimal Price { get; set; }
         public int ArtistID { get; set; }
         public Artist? Artist { get; set; }
+        
 
 
     }
