@@ -1,0 +1,50 @@
+﻿@model Talor_music.Models.PlayListSong
+
+@{
+    ViewData["Title"] = "Details";
+}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<h1>Details</h1>
+
+<div>
+    <h4>PlayListSong</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CustomerID)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CustomerID)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DateAdded)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DateAdded)
+        </dd>
+    </dl>
+</div>
+<div>
+    <form asp-action="AddSongToListAction">
+        <input type="hidden" asp-for="playListId" value="@Model.PlaylistSongID" />
+        <select class="select2">
+            @foreach(var song in ViewBag.Songs)
+                {
+                <option asp-for="songId" value="@song.SongID">@song.Title</option>
+                }
+            </select>
+            <button type="submit">Add Song</button>
+    </form>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.PlaylistSongID">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

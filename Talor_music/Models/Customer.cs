@@ -6,7 +6,7 @@
         public string Name { get; set; }
 
         // כל לקוח יכול להיות לו פלייליסט
-        public List<PlayListSong> Playlists { get; set; }
+        public List<PlayListSong>? Playlists { get; set; }
 
     }
 }

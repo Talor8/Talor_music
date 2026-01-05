@@ -13,6 +13,6 @@ namespace Talor_music.Models
         public string Name { get; set; }
 
         // Added '?' to make it optional during creation
-        public virtual ICollection<Album>? Albums { get; set; }
+       
     }
 }

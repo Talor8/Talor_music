@@ -5,7 +5,7 @@
 namespace Talor_music.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class m5t2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

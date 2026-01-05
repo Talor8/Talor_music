@@ -1,4 +1,4 @@
-﻿@model Talor_music.Models.Album
+﻿@model Talor_music.Models.PlayListSong
 
 @{
     ViewData["Title"] = "Create";
@@ -6,7 +6,7 @@
 
 <h1>Create</h1>
 
-<h4>Album</h4>
+<h4>PlayListSong</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -18,13 +18,14 @@
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ReleaseYear" class="control-label"></label>
-                <input asp-for="ReleaseYear" class="form-control" />
-                <span asp-validation-for="ReleaseYear" class="text-danger"></span>
+                <label asp-for="CustomerID" class="control-label"></label>
+                <input asp-for="CustomerID" class="form-control" />
+                <span asp-validation-for="CustomerID" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ArtistID" class="control-label"></label>
-                <select asp-for="ArtistID" class ="form-control" asp-items="ViewBag.ArtistID"></select>
+                <label asp-for="DateAdded" class="control-label"></label>
+                <input asp-for="DateAdded" class="form-control" />
+                <span asp-validation-for="DateAdded" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />

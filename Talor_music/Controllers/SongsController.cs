@@ -10,22 +10,23 @@ using Talor_music.Models;
 
 namespace Talor_music.Controllers
 {
-    public class ArtistsController : Controller
+    public class SongsController : Controller
     {
         private readonly Talor_musicContext _context;
 
-        public ArtistsController(Talor_musicContext context)
+        public SongsController(Talor_musicContext context)
         {
             _context = context;
         }
 
-        // GET: Artists
+        // GET: Songs
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Artist.ToListAsync());
+            var talor_musicContext = _context.Song.Include(s => s.Artist);
+            return View(await talor_musicContext.ToListAsync());
         }
 
-        // GET: Artists/Details/5
+        // GET: Songs/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -33,39 +34,42 @@ namespace Talor_music.Controllers
                 return NotFound();
             }
 
-            var artist = await _context.Artist
-                .FirstOrDefaultAsync(m => m.ArtistID == id);
-            if (artist == null)
+            var song = await _context.Song
+                .Include(s => s.Artist)
+                .FirstOrDefaultAsync(m => m.SongID == id);
+            if (song == null)
             {
                 return NotFound();
             }
 
-            return View(artist);
+            return View(song);
         }
 
-        // GET: Artists/Create
+        // GET: Songs/Create
         public IActionResult Create()
         {
+            ViewData["ArtistID"] = new SelectList(_context.Artist, "ArtistID", "Name");
             return View();
         }
 
-        // POST: Artists/Create
+        // POST: Songs/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ArtistID,Name")] Artist artist)
+        public async Task<IActionResult> Create([Bind("SongID,Title,Genre,Price,ArtistID")] Song song)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(artist);
+                _context.Add(song);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(artist);
+            ViewData["ArtistID"] = new SelectList(_context.Artist, "ArtistID", "Name", song.ArtistID);
+            return View(song);
         }
 
-        // GET: Artists/Edit/5
+        // GET: Songs/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -73,22 +77,23 @@ namespace Talor_music.Controllers
                 return NotFound();
             }
 
-            var artist = await _context.Artist.FindAsync(id);
-            if (artist == null)
+            var song = await _context.Song.FindAsync(id);
+            if (song == null)
             {
                 return NotFound();
             }
-            return View(artist);
+            ViewData["ArtistID"] = new SelectList(_context.Artist, "ArtistID", "Name", song.ArtistID);
+            return View(song);
         }
 
-        // POST: Artists/Edit/5
+        // POST: Songs/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ArtistID,Name")] Artist artist)
+        public async Task<IActionResult> Edit(int id, [Bind("SongID,Title,Genre,Price,ArtistID")] Song song)
         {
-            if (id != artist.ArtistID)
+            if (id != song.SongID)
             {
                 return NotFound();
             }
@@ -97,12 +102,12 @@ namespace Talor_music.Controllers
             {
                 try
                 {
-                    _context.Update(artist);
+                    _context.Update(song);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ArtistExists(artist.ArtistID))
+                    if (!SongExists(song.SongID))
                     {
                         return NotFound();
                     }
@@ -113,10 +118,11 @@ namespace Talor_music.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(artist);
+            ViewData["ArtistID"] = new SelectList(_context.Artist, "ArtistID", "Name", song.ArtistID);
+            return View(song);
         }
 
-        // GET: Artists/Delete/5
+        // GET: Songs/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -124,34 +130,35 @@ namespace Talor_music.Controllers
                 return NotFound();
             }
 
-            var artist = await _context.Artist
-                .FirstOrDefaultAsync(m => m.ArtistID == id);
-            if (artist == null)
+            var song = await _context.Song
+                .Include(s => s.Artist)
+                .FirstOrDefaultAsync(m => m.SongID == id);
+            if (song == null)
             {
                 return NotFound();
             }
 
-            return View(artist);
+            return View(song);
         }
 
-        // POST: Artists/Delete/5
+        // POST: Songs/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var artist = await _context.Artist.FindAsync(id);
-            if (artist != null)
+            var song = await _context.Song.FindAsync(id);
+            if (song != null)
             {
-                _context.Artist.Remove(artist);
+                _context.Song.Remove(song);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ArtistExists(int id)
+        private bool SongExists(int id)
         {
-            return _context.Artist.Any(e => e.ArtistID == id);
+            return _context.Song.Any(e => e.SongID == id);
         }
     }
 }

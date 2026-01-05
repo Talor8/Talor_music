@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Talor_music.Models.Artist>
+﻿@model IEnumerable<Talor_music.Models.Customer>
 
 @{
     ViewData["Title"] = "Index";
@@ -25,9 +25,9 @@
                 @Html.DisplayFor(modelItem => item.Name)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.ArtistID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ArtistID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ArtistID">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
             </td>
         </tr>
 }

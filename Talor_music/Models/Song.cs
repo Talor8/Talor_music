@@ -21,9 +21,9 @@ namespace Talor_music.Models
         [Column(TypeName = "decimal(18, 2)")]
         [DisplayFormat(DataFormatString = "{0:C}")]
         public decimal Price { get; set; }
+        public int ArtistID { get; set; }
+        public Artist? Artist { get; set; }
 
-        // מפתח זר לאלבום (קשר N:1)
-        public int AlbumID { get; set; }
-        public Album Album { get; set; } // Navigation Property
+
     }
 }
