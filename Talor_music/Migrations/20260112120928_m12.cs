@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Talor_music.Migrations
 {
     /// <inheritdoc />
-    public partial class m5t1 : Migration
+    public partial class m12 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -38,6 +38,28 @@ namespace Talor_music.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Song",
+                columns: table => new
+                {
+                    SongID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Genre = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ArtistID = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Song", x => x.SongID);
+                    table.ForeignKey(
+                        name: "FK_Song_Artist_ArtistID",
+                        column: x => x.ArtistID,
+                        principalTable: "Artist",
+                        principalColumn: "ArtistID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PlayListSong",
                 columns: table => new
                 {
@@ -59,31 +81,27 @@ namespace Talor_music.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Song",
+                name: "PlayListSongSong",
                 columns: table => new
                 {
-                    SongID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Genre = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ArtistID = table.Column<int>(type: "int", nullable: false),
-                    PlaylistSongID = table.Column<int>(type: "int", nullable: true)
+                    PlaylistSongID = table.Column<int>(type: "int", nullable: false),
+                    SongsSongID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Song", x => x.SongID);
+                    table.PrimaryKey("PK_PlayListSongSong", x => new { x.PlaylistSongID, x.SongsSongID });
                     table.ForeignKey(
-                        name: "FK_Song_Artist_ArtistID",
-                        column: x => x.ArtistID,
-                        principalTable: "Artist",
-                        principalColumn: "ArtistID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Song_PlayListSong_PlaylistSongID",
+                        name: "FK_PlayListSongSong_PlayListSong_PlaylistSongID",
                         column: x => x.PlaylistSongID,
                         principalTable: "PlayListSong",
-                        principalColumn: "PlaylistSongID");
+                        principalColumn: "PlaylistSongID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PlayListSongSong_Song_SongsSongID",
+                        column: x => x.SongsSongID,
+                        principalTable: "Song",
+                        principalColumn: "SongID",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -92,30 +110,33 @@ namespace Talor_music.Migrations
                 column: "CustomerID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PlayListSongSong_SongsSongID",
+                table: "PlayListSongSong",
+                column: "SongsSongID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Song_ArtistID",
                 table: "Song",
                 column: "ArtistID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Song_PlaylistSongID",
-                table: "Song",
-                column: "PlaylistSongID");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Song");
-
-            migrationBuilder.DropTable(
-                name: "Artist");
+                name: "PlayListSongSong");
 
             migrationBuilder.DropTable(
                 name: "PlayListSong");
 
             migrationBuilder.DropTable(
+                name: "Song");
+
+            migrationBuilder.DropTable(
                 name: "Customer");
+
+            migrationBuilder.DropTable(
+                name: "Artist");
         }
     }
 }

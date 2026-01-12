@@ -22,8 +22,9 @@ namespace Talor_music.Models
         [DisplayFormat(DataFormatString = "{0:C}")]
         public decimal Price { get; set; }
         public int ArtistID { get; set; }
-        public Artist? Artist { get; set; }
-        
+        public Artist? Artist { get; set; }=null;
+        public ICollection<PlayListSong>? PlaylistSong { get; set; } = new List<PlayListSong>();
+
 
 
     }

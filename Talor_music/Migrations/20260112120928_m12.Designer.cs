@@ -12,8 +12,8 @@ using Talor_music.Data;
 namespace Talor_music.Migrations
 {
     [DbContext(typeof(Talor_musicContext))]
-    [Migration("20260105113407_m5t2")]
-    partial class m5t2
+    [Migration("20260112120928_m12")]
+    partial class m12
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,21 @@ namespace Talor_music.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("PlayListSongSong", b =>
+                {
+                    b.Property<int>("PlaylistSongID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SongsSongID")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlaylistSongID", "SongsSongID");
+
+                    b.HasIndex("SongsSongID");
+
+                    b.ToTable("PlayListSongSong");
+                });
 
             modelBuilder.Entity("Talor_music.Models.Artist", b =>
                 {
@@ -101,9 +116,6 @@ namespace Talor_music.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("PlaylistSongID")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18, 2)");
 
@@ -116,9 +128,22 @@ namespace Talor_music.Migrations
 
                     b.HasIndex("ArtistID");
 
-                    b.HasIndex("PlaylistSongID");
-
                     b.ToTable("Song");
+                });
+
+            modelBuilder.Entity("PlayListSongSong", b =>
+                {
+                    b.HasOne("Talor_music.Models.PlayListSong", null)
+                        .WithMany()
+                        .HasForeignKey("PlaylistSongID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Talor_music.Models.Song", null)
+                        .WithMany()
+                        .HasForeignKey("SongsSongID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Talor_music.Models.PlayListSong", b =>
@@ -138,21 +163,12 @@ namespace Talor_music.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Talor_music.Models.PlayListSong", null)
-                        .WithMany("Songs")
-                        .HasForeignKey("PlaylistSongID");
-
                     b.Navigation("Artist");
                 });
 
             modelBuilder.Entity("Talor_music.Models.Customer", b =>
                 {
                     b.Navigation("Playlists");
-                });
-
-            modelBuilder.Entity("Talor_music.Models.PlayListSong", b =>
-                {
-                    b.Navigation("Songs");
                 });
 #pragma warning restore 612, 618
         }

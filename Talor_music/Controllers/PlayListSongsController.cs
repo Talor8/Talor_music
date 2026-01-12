@@ -50,6 +50,8 @@ namespace Talor_music.Controllers
         // GET: PlayListSongs/Create
         public IActionResult Create()
         {
+            //מחליף את תצוגת האי די של הלקוח לשם שלו
+            ViewData["CustomerID"] = new SelectList(_context.Customer, "Id", "Name");
             return View();
         }
 
@@ -66,6 +68,7 @@ namespace Talor_music.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["CustomerID"] = new SelectList(_context.Customer, "Id", "Name", playListSong.CustomerID);
             return View(playListSong);
         }
 
