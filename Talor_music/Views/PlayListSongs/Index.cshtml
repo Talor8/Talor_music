@@ -21,11 +21,19 @@
             <th>
                 @Html.DisplayNameFor(model => model.DateAdded)
             </th>
+            <th>
+                Total Price
+            </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
 @foreach (var item in Model) {
+        var total = 0m;
+        if (item.Songs != null && item.Songs.Any())
+        {
+            total = item.Songs.Sum(s => s.Price);
+        }
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.Title)
@@ -35,6 +43,9 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.DateAdded)
+            </td>
+            <td>
+                @String.Format("{0:C}", total)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.PlaylistSongID">Edit</a> |

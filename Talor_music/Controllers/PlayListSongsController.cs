@@ -22,7 +22,13 @@ namespace Talor_music.Controllers
         // GET: PlayListSongs
         public async Task<IActionResult> Index()
         {
-            return View(await _context.PlayListSong.ToListAsync());
+            var playlists = await _context.PlayListSong
+                .Include(p => p.Songs)
+                .ToListAsync();
+
+            return View(playlists);
+            //ViewData["CustomerID"] = new SelectList(_context.Customer, "Id", "Name");
+            //ViewData["CustomerID"] = new SelectList(_context.Customer, "Id", "Name", playListSong.CustomerID);
         }
 
         // GET: PlayListSongs/Details/5
