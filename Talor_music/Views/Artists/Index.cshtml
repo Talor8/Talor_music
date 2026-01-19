@@ -1,35 +1,121 @@
 ﻿@model IEnumerable<Talor_music.Models.Artist>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "האמנים שלנו";
 }
 
-<h1>Index</h1>
+@* חיבור לספריות חיצוניות לעיצוב *@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&display=swap" rel="stylesheet">
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ArtistID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ArtistID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ArtistID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<style>
+    body {
+        background-color: #f0f2f5;
+        font-family: 'Assistant', sans-serif;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%);
+        color: white;
+        padding: 40px 0;
+        border-radius: 0 0 30px 30px;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .artist-card {
+        background: white;
+        border: none;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        border-right: 6px solid #784BA0; /* פס צבעוני בצד */
+    }
+
+        .artist-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-right-color: #FF3CAC;
+        }
+
+    .btn-action {
+        border-radius: 10px;
+        padding: 8px 15px;
+        font-weight: 600;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .btn-create {
+        background: #FF3CAC;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 12px 30px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(255, 60, 172, 0.3);
+    }
+
+        .btn-create:hover {
+            background: #e6369b;
+            color: white;
+            transform: scale(1.05);
+        }
+
+    .artist-icon {
+        background: #f8f9fa;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        color: #784BA0;
+        font-size: 1.5rem;
+    }
+</style>
+
+<div class="page-header text-center">
+    <div class="container">
+        <h1 class="display-4 fw-bold">נבחרת האמנים</h1>
+        <p class="lead">גלו את היוצרים שמאחורי המוזיקה שאתם אוהבים</p>
+        <a asp-action="Create" class="btn btn-create mt-3">
+            <i class="bi bi-person-plus-fill me-2"></i>הוספת אמן חדש
+        </a>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card artist-card h-100 shadow-sm p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="artist-icon me-3 shadow-sm">
+                            <i class="bi bi-music-note-beamed"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h4 class="fw-bold mb-1 text-dark">@Html.DisplayFor(modelItem => item.Name)</h4>
+                            <span class="text-muted small">אמן בחנות</span>
+                        </div>
+                    </div>
+
+                    <hr class="my-3 opacity-25">
+
+                    <div class="d-flex justify-content-center gap-2">
+                        <a asp-action="Edit" asp-route-id="@item.ArtistID" class="btn btn-action btn-outline-primary">
+                            <i class="bi bi-pencil-square me-1"></i>עריכה
+                        </a>
+                        <a asp-action="Details" asp-route-id="@item.ArtistID" class="btn btn-action btn-outline-info">
+                            <i class="bi bi-eye me-1"></i>פרטים
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.ArtistID" class="btn btn-action btn-outline-danger">
+                            <i class="bi bi-trash me-1"></i>מחיקה
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

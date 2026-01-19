@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,17 +16,29 @@ namespace Talor_music.Controllers
     public class SongsController : Controller
     {
         private readonly Talor_musicContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public SongsController(Talor_musicContext context)
+        public SongsController(Talor_musicContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
         // GET: Songs
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            var talor_musicContext = _context.Song.Include(s => s.Artist);
-            return View(await talor_musicContext.ToListAsync());
+            // טעינת השירים יחד עם האמן שלהם
+            var songs = _context.Song.Include(s => s.Artist).AsQueryable();
+
+            // אם המשתמש הזין טקסט בתיבת החיפוש
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                songs = songs.Where(s => s.Title.Contains(searchString)
+                                      || s.Artist.Name.Contains(searchString)
+                                      || s.Genre.Contains(searchString));
+            }
+
+            return View(await songs.ToListAsync());
         }
 
         // GET: Songs/Details/5
@@ -57,10 +72,21 @@ namespace Talor_music.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SongID,Title,Genre,Price,ArtistID")] Song song)
+        public async Task<IActionResult> Create([Bind("SongID,Title,Genre,Price,ArtistID")] Song song, IFormFile? imageFile)
         {
             if (ModelState.IsValid)
             {
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    var uploads = Path.Combine(_env.WebRootPath, "images/songs");
+                    Directory.CreateDirectory(uploads);
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                    var filePath = Path.Combine(uploads, fileName);
+                    using var stream = System.IO.File.Create(filePath);
+                    await imageFile.CopyToAsync(stream);
+                    song.ImagePath = Path.Combine("images/songs", fileName).Replace("\\", "/");
+                }
+
                 _context.Add(song);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -91,7 +117,7 @@ namespace Talor_music.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("SongID,Title,Genre,Price,ArtistID")] Song song)
+        public async Task<IActionResult> Edit(int id, [Bind("SongID,Title,Genre,Price,ArtistID,ImagePath")] Song song, IFormFile? imageFile)
         {
             if (id != song.SongID)
             {
@@ -102,6 +128,26 @@ namespace Talor_music.Controllers
             {
                 try
                 {
+                    if (imageFile != null && imageFile.Length > 0)
+                    {
+                        var uploads = Path.Combine(_env.WebRootPath, "images/songs");
+                        Directory.CreateDirectory(uploads);
+                        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                        var filePath = Path.Combine(uploads, fileName);
+                        using var stream = System.IO.File.Create(filePath);
+                        await imageFile.CopyToAsync(stream);
+                        // optionally delete old file
+                        if (!string.IsNullOrEmpty(song.ImagePath))
+                        {
+                            var old = Path.Combine(_env.WebRootPath, song.ImagePath.Replace('/', Path.DirectorySeparatorChar));
+                            if (System.IO.File.Exists(old))
+                            {
+                                System.IO.File.Delete(old);
+                            }
+                        }
+                        song.ImagePath = Path.Combine("images/songs", fileName).Replace("\\", "/");
+                    }
+
                     _context.Update(song);
                     await _context.SaveChangesAsync();
                 }
