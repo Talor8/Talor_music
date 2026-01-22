@@ -1,45 +1,146 @@
 ﻿@model Talor_music.Models.PlayListSong
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "יצירת פלייליסט חדש";
 }
 
-<h1>Create</h1>
+@* פונטים ואייקונים *@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;800&display=swap" rel="stylesheet">
 
-<h4>PlayListSong</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
+<style>
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4efe9 100%);
+        font-family: 'Assistant', sans-serif;
+        min-height: 100vh;
+    }
+
+    .create-card {
+        border: none;
+        border-radius: 25px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        background: white;
+        overflow: hidden;
+        margin-top: 50px;
+    }
+
+    .card-header-gradient {
+        background: linear-gradient(45deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+        padding: 40px;
+        text-align: center;
+        border: none;
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: #495057;
+        margin-bottom: 8px;
+    }
+
+    .form-control-custom {
+        border-radius: 12px;
+        padding: 12px 15px;
+        border: 2px solid #f1f3f5;
+        transition: all 0.3s ease;
+    }
+
+        .form-control-custom:focus {
+            border-color: #6a11cb;
+            box-shadow: 0 0 10px rgba(106, 17, 203, 0.1);
+        }
+
+    .btn-submit {
+        background: linear-gradient(45deg, #6a11cb, #2575fc);
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        font-weight: 800;
+        color: white;
+        text-transform: uppercase;
+        transition: 0.3s;
+    }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(106, 17, 203, 0.3);
+            color: white;
+        }
+
+    .icon-box {
+        background: rgba(255,255,255,0.2);
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 2rem;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7">
+            <div class="create-card">
+
+                <div class="card-header-gradient">
+                    <div class="icon-box">
+                        <i class="bi bi-music-note-list"></i>
+                    </div>
+                    <h2 class="fw-bold mb-1">New Collection</h2>
+                    <p class="mb-0 opacity-75">צור פלייליסט חדש והתחל להוסיף שירים</p>
+                </div>
+
+                <div class="card-body p-5">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="Title" class="form-label">
+                                <i class="bi bi-pencil-fill me-2 text-primary"></i>שם הפלייליסט
+                            </label>
+                            <input asp-for="Title" class="form-control form-control-custom" placeholder="למשל: שירים לבוקר, להיטים..." />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="CustomerID" class="form-label">
+                                <i class="bi bi-person-circle me-2 text-primary"></i>שייך ללקוח
+                            </label>
+                            <select asp-for="CustomerID" class="form-control form-control-custom" asp-items="ViewBag.CustomerID">
+                                <option value="">-- בחר לקוח --</option>
+                            </select>
+                            <span asp-validation-for="CustomerID" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-5">
+                            <label asp-for="DateAdded" class="form-label">
+                                <i class="bi bi-calendar-event me-2 text-primary"></i>תאריך יצירה
+                            </label>
+                            <input asp-for="DateAdded" class="form-control form-control-custom" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="DateAdded" class="text-danger small"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-submit w-100 shadow-sm mb-3">
+                            <i class="bi bi-plus-circle me-2"></i> צור פלייליסט עכשיו
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card-footer bg-light border-0 py-3 text-center">
+                    <a asp-action="Index" class="text-decoration-none text-muted small">
+                        <i class="bi bi-arrow-left me-1"></i> חזרה לרשימת הפלייליסטים
+                    </a>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="CustomerID" class="control-label"></label>
-                <select asp-for="CustomerID" class="form-control" asp-items="ViewBag.CustomerID">
-                    <option value="">-- Select customer --</option>
-                </select>
-                <span asp-validation-for="CustomerID" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DateAdded" class="control-label"></label>
-                <input asp-for="DateAdded" class="form-control" />
-                <span asp-validation-for="DateAdded" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

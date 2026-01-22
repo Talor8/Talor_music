@@ -1,51 +1,176 @@
 ﻿@model Talor_music.Models.Song
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Add New Song";
 }
 
-<h1>Create</h1>
+@* פונטים ואייקונים *@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;800&display=swap" rel="stylesheet">
 
-<h4>Song</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
+<style>
+    body {
+        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        font-family: 'Assistant', sans-serif;
+        min-height: 100vh;
+    }
+
+    .create-song-card {
+        border: none;
+        border-radius: 25px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        background: white;
+        overflow: hidden;
+    }
+
+    .card-header-song {
+        background: linear-gradient(45deg, #1db954 0%, #191414 100%);
+        color: white;
+        padding: 40px;
+        text-align: center;
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: #495057;
+        margin-bottom: 8px;
+    }
+
+    .form-control, .form-select {
+        border-radius: 12px;
+        padding: 12px 15px;
+        border: 2px solid #f1f3f5;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #1db954;
+        box-shadow: 0 0 10px rgba(29, 185, 84, 0.1);
+    }
+
+    .btn-create-song {
+        background: #1db954;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: 0.3s;
+    }
+
+    .btn-create-song:hover {
+        background: #1ed760;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(29, 185, 84, 0.3);
+    }
+
+    .upload-box {
+        border: 2px dashed #dee2e6;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        background: #f8f9fa;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .upload-box:hover {
+        background: #f1f3f5;
+        border-color: #1db954;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="create-song-card">
+
+                <div class="card-header-song">
+                    <i class="bi bi-music-note-beamed mb-3" style="font-size: 3rem;"></i>
+                    <h2 class="fw-bold">Add to Library</h2>
+                    <p class="mb-0 opacity-75">הוסיפו שיר חדש לחנות המוזיקה שלכם</p>
+                </div>
+
+                <div class="card-body p-5">
+                    <form asp-action="Create" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="Title" class="form-label">
+                                <i class="bi bi-type me-2 text-success"></i>Song Title
+                            </label>
+                            <input asp-for="Title" class="form-control" placeholder="Enter song title..." />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Genre" class="form-label">
+                                    <i class="bi bi-tags me-2 text-success"></i>Genre
+                                </label>
+                                <input asp-for="Genre" class="form-control" placeholder="Pop, Rock, etc." />
+                                <span asp-validation-for="Genre" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Price" class="form-label">
+                                    <i class="bi bi-currency-dollar me-2 text-success"></i>Price (₪)
+                                </label>
+                                <input asp-for="Price" class="form-control" placeholder="0.00" />
+                                <span asp-validation-for="Price" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ArtistID" class="form-label">
+                                <i class="bi bi-person-badge me-2 text-success"></i>Select Artist
+                            </label>
+                            <select asp-for="ArtistID" class="form-select" asp-items="ViewBag.ArtistID">
+                                <option value="">-- Choose an Artist --</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="form-label">
+                                <i class="bi bi-image me-2 text-success"></i>Cover Art
+                            </label>
+                            <div class="upload-box">
+                                <input type="file" name="imageFile" id="imageInput" class="form-control d-none" accept="image/*" />
+                                <label for="imageInput" style="cursor: pointer;" class="w-100 mb-0">
+                                    <i class="bi bi-cloud-arrow-up fs-2 text-muted"></i>
+                                    <p class="mb-0 text-muted small mt-2" id="fileName">Click to upload or drag & drop</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-create-song w-100 shadow-sm">
+                            <i class="bi bi-cloud-plus me-2"></i> Publish Song
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card-footer bg-light border-0 py-3 text-center">
+                    <a asp-action="Index" class="text-decoration-none text-muted small">
+                        <i class="bi bi-arrow-left me-1"></i> Nevermind, go back to list
+                    </a>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Genre" class="control-label"></label>
-                <input asp-for="Genre" class="form-control" />
-                <span asp-validation-for="Genre" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Price" class="control-label"></label>
-                <input asp-for="Price" class="form-control" />
-                <span asp-validation-for="Price" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ArtistID" class="control-label"></label>
-                <select asp-for="ArtistID" class ="form-control" asp-items="ViewBag.ArtistID"></select>
-            </div>
-            <div class="form-group">
-                <label class="control-label">Cover image</label>
-                <input type="file" name="imageFile" class="form-control" />
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // קוד קטן להצגת שם הקובץ כשבוחרים תמונה
+        document.getElementById('imageInput').onchange = function () {
+            var fileName = this.files[0] ? this.files[0].name : "Click to upload or drag & drop";
+            document.getElementById('fileName').innerHTML = "Selected: <strong>" + fileName + "</strong>";
+        };
+    </script>
 }
