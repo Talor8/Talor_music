@@ -144,6 +144,15 @@
                                 </label>
                             </div>
                         </div>
+                     @*    <form asp-action="Create" enctype="multipart/form-data">
+                            <!-- Other fields... --> *@
+                            <div>
+                                <label for="AudioFile">Upload Audio</label>
+                                <input type="file" name="AudioFile" accept="audio/*" />
+                            </div>
+                            @* <button type="submit">Save</button> *@
+                      @*   </form> *@
+
 
                         <button type="submit" class="btn btn-create-song w-100 shadow-sm">
                             <i class="bi bi-cloud-plus me-2"></i> Publish Song

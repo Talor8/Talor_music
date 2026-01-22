@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\audio\" />
     <Folder Include="wwwroot\odio\" />
   </ItemGroup>
 

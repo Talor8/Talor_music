@@ -72,7 +72,7 @@ namespace Talor_music.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SongID,Title,Genre,Price,ArtistID")] Song song, IFormFile? imageFile)
+        public async Task<IActionResult> Create([Bind("SongID,Title,Genre,Price,ArtistID")] Song song, IFormFile? imageFile, IFormFile AudioFile)
         {
             if (ModelState.IsValid)
             {
@@ -86,6 +86,19 @@ namespace Talor_music.Controllers
                     await imageFile.CopyToAsync(stream);
                     song.ImagePath = Path.Combine("images/songs", fileName).Replace("\\", "/");
                 }
+
+                    if (AudioFile != null && AudioFile.Length > 0)
+                    {
+                        var filePath = Path.Combine("wwwroot/audio", AudioFile.FileName);
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await AudioFile.CopyToAsync(stream);
+                        }
+                        song.AudioFilePath = "/audio/" + AudioFile.FileName;
+                    }
+          
+                
+
 
                 _context.Add(song);
                 await _context.SaveChangesAsync();
