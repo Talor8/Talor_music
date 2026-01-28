@@ -72,10 +72,11 @@ namespace Talor_music.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SongID,Title,Genre,Price,ArtistID")] Song song, IFormFile? imageFile, IFormFile AudioFile)
+        public async Task<IActionResult> Create([Bind("SongID,Title,Genre,Price,ArtistID")] Song song, IFormFile? imageFile, IFormFile? audioFile)
         {
             if (ModelState.IsValid)
             {
+                // --- טיפול בתמונה (הקוד הקיים שלך) ---
                 if (imageFile != null && imageFile.Length > 0)
                 {
                     var uploads = Path.Combine(_env.WebRootPath, "images/songs");
@@ -87,17 +88,22 @@ namespace Talor_music.Controllers
                     song.ImagePath = Path.Combine("images/songs", fileName).Replace("\\", "/");
                 }
 
-                    if (AudioFile != null && AudioFile.Length > 0)
-                    {
-                        var filePath = Path.Combine("wwwroot/audio", AudioFile.FileName);
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await AudioFile.CopyToAsync(stream);
-                        }
-                        song.AudioFilePath = "/audio/" + AudioFile.FileName;
-                    }
-          
-                
+                // --- טיפול בקובץ השמע (הקוד החדש) ---
+                if (audioFile != null && audioFile.Length > 0)
+                {
+                    var audioUploads = Path.Combine(_env.WebRootPath, "audio");
+                    Directory.CreateDirectory(audioUploads); // יוצר תיקיית audio אם היא לא קיימת
+                    var audioName = Guid.NewGuid().ToString() + Path.GetExtension(audioFile.FileName);
+                    var audioPath = Path.Combine(audioUploads, audioName);
+
+                    using var audioStream = System.IO.File.Create(audioPath);
+                    await audioFile.CopyToAsync(audioStream);
+
+                    // שמירת הנתיב במסד הנתונים (לוודא שיש לך שדה AudioPath במודל Song)
+                    song.AudioFilePath = Path.Combine("audio", audioName).Replace("\\", "/");
+                }
+
+
 
 
                 _context.Add(song);
