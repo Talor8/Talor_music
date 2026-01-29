@@ -110,6 +110,23 @@
         .action-icons a:hover {
             color: #191414;
         }
+
+    /* עיצוב חדש לנגן השמע */
+    .audio-preview-container {
+        min-width: 200px;
+        margin: 0 20px;
+    }
+
+    .custom-audio {
+        height: 30px;
+        width: 180px;
+        filter: grayscale(100%) opacity(0.7);
+        transition: 0.3s;
+    }
+
+        .custom-audio:hover {
+            filter: grayscale(0%) opacity(1);
+        }
 </style>
 
 <div class="store-header text-center">
@@ -119,7 +136,6 @@
 
         <div class="row justify-content-center mb-4">
             <div class="col-md-7">
-                @* שימי לב: asp-action="Index" שולח את החיפוש חזרה לאותו דף *@
                 <form asp-controller="Songs" asp-action="Index" method="get" class="position-relative shadow rounded-pill overflow-hidden">
                     <input type="text" name="searchString" value="@Context.Request.Query["searchString"]"
                            class="form-control search-input ps-5 rounded-pill"
@@ -160,6 +176,7 @@
     {
         <div class="card song-row p-3">
             <div class="d-flex align-items-center">
+                @* 1. תמונת השיר *@
                 <div class="cover-wrapper me-4">
                     @{
                         var imgSrc = string.IsNullOrEmpty(item.ImagePath)
@@ -169,6 +186,7 @@
                     <img src="@imgSrc" class="song-img" onerror="this.src='https://via.placeholder.com/150?text=♫'" />
                 </div>
 
+                @* 2. פרטי השיר והאמן *@
                 <div class="flex-grow-1">
                     <h5 class="mb-0 fw-bold">@item.Title</h5>
                     <p class="text-muted mb-0 small">
@@ -178,16 +196,35 @@
                     </p>
                 </div>
 
+                @* 3. נגן מוזיקה - השינוי החדש *@
+                <div class="audio-preview-container">
+                    @if (!string.IsNullOrEmpty(item.AudioFilePath))
+                    {
+                        <audio controls class="custom-audio">
+                            <source src="@Url.Content("~/" + item.AudioFilePath)" type="audio/mpeg">
+                        </audio>
+                    }
+                    else
+                    {
+                        <div class="text-muted small" style="font-size: 0.75rem;">
+                            <i class="bi bi-mic-mute me-1"></i> No preview
+                        </div>
+                    }
+                </div>
+
+                @* 4. מחיר *@
                 <div class="me-4 text-center">
                     <span class="price-text">@String.Format("{0:C}", item.Price)</span>
                 </div>
 
+                @* 5. אייקוני עריכה ופרטים *@
                 <div class="action-icons me-3">
                     <a asp-action="Details" asp-route-id="@item.SongID"><i class="bi bi-info-circle"></i></a>
                     <a asp-action="Edit" asp-route-id="@item.SongID"><i class="bi bi-pencil-square"></i></a>
                     <a asp-action="Delete" asp-route-id="@item.SongID" class="text-danger"><i class="bi bi-trash"></i></a>
                 </div>
 
+                @* 6. כפתור הוספה *@
                 <div>
                     <a asp-controller="PlayListSongs" asp-action="AddSongToPlayList" asp-route-songId="@item.SongID" class="btn btn-add-playlist">
                         <i class="bi bi-plus-circle-fill me-1"></i> Add
