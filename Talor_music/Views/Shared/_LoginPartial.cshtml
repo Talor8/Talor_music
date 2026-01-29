@@ -1,0 +1,33 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        @* תצוגה כאשר המשתמש מחובר *@
+        <li class="nav-item">
+            <a class="nav-link text-light" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
+                Hello @(User.Identity?.Name)!
+            </a>
+        </li>
+        <li class="nav-item">
+            @* כפתור התנתקות חייב להיות בתוך Form כדי לעבוד מטעמי אבטחה *@
+            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                <button type="submit" class="nav-link btn btn-link text-danger fw-bold border-0">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
+        </li>
+    }
+    else
+    {
+        @* תצוגה כאשר המשתמש לא מחובר *@
+        <li class="nav-item">
+            <a class="nav-link text-light" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link btn btn-success text-white rounded-pill px-3 ms-2" asp-area="Identity" asp-page="/Account/Login">Login</a>
+        </li>
+    }
+</ul>

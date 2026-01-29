@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // השורה החדשה שהוספנו
 using Talor_music.Models;
 
 namespace Talor_music.Data
 {
-    public class Talor_musicContext : DbContext
+    // כאן שינינו ל-IdentityDbContext
+    public class Talor_musicContext : IdentityDbContext
     {
-        public Talor_musicContext (DbContextOptions<Talor_musicContext> options)
+        public Talor_musicContext(DbContextOptions<Talor_musicContext> options)
             : base(options)
         {
         }

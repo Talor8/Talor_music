@@ -8,11 +8,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using Talor_music.Data;
 using Talor_music.Models;
 
 namespace Talor_music.Controllers
 {
+    [Authorize] // ברירת מחדל: רק משתמשים מחוברים
     public class SongsController : Controller
     {
         private readonly Talor_musicContext _context;
@@ -24,13 +26,12 @@ namespace Talor_music.Controllers
             _env = env;
         }
 
-        // GET: Songs
+        // --- כולם יכולים לראות את רשימת השירים ---
+        [AllowAnonymous]
         public async Task<IActionResult> Index(string searchString)
         {
-            // טעינת השירים יחד עם האמן שלהם
             var songs = _context.Song.Include(s => s.Artist).AsQueryable();
 
-            // אם המשתמש הזין טקסט בתיבת החיפוש
             if (!string.IsNullOrEmpty(searchString))
             {
                 songs = songs.Where(s => s.Title.Contains(searchString)
@@ -41,70 +42,59 @@ namespace Talor_music.Controllers
             return View(await songs.ToListAsync());
         }
 
-        // GET: Songs/Details/5
+        // --- כולם יכולים לראות פרטים ---
+        [AllowAnonymous]
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var song = await _context.Song
                 .Include(s => s.Artist)
                 .FirstOrDefaultAsync(m => m.SongID == id);
-            if (song == null)
-            {
-                return NotFound();
-            }
+
+            if (song == null) return NotFound();
 
             return View(song);
         }
 
-        // GET: Songs/Create
+        // --- רק מנהל יכול להוסיף שירים ---
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewData["ArtistID"] = new SelectList(_context.Artist, "ArtistID", "Name");
             return View();
         }
 
-        // POST: Songs/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("SongID,Title,Genre,Price,ArtistID")] Song song, IFormFile? imageFile, IFormFile? audioFile)
         {
             if (ModelState.IsValid)
             {
-                // --- טיפול בתמונה (הקוד הקיים שלך) ---
+                // שמירת תמונה
                 if (imageFile != null && imageFile.Length > 0)
                 {
-                    var uploads = Path.Combine(_env.WebRootPath, "images/songs");
-                    Directory.CreateDirectory(uploads);
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                    var filePath = Path.Combine(uploads, fileName);
-                    using var stream = System.IO.File.Create(filePath);
-                    await imageFile.CopyToAsync(stream);
-                    song.ImagePath = Path.Combine("images/songs", fileName).Replace("\\", "/");
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                    string uploadPath = Path.Combine(_env.WebRootPath, "images", fileName);
+                    using (var stream = new FileStream(uploadPath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+                    song.ImagePath = "/images/" + fileName;
                 }
 
-                // --- טיפול בקובץ השמע (הקוד החדש) ---
+                // שמירת קובץ אודיו
                 if (audioFile != null && audioFile.Length > 0)
                 {
-                    var audioUploads = Path.Combine(_env.WebRootPath, "audio");
-                    Directory.CreateDirectory(audioUploads); // יוצר תיקיית audio אם היא לא קיימת
-                    var audioName = Guid.NewGuid().ToString() + Path.GetExtension(audioFile.FileName);
-                    var audioPath = Path.Combine(audioUploads, audioName);
-
-                    using var audioStream = System.IO.File.Create(audioPath);
-                    await audioFile.CopyToAsync(audioStream);
-
-                    // שמירת הנתיב במסד הנתונים (לוודא שיש לך שדה AudioPath במודל Song)
-                    song.AudioFilePath = Path.Combine("audio", audioName).Replace("\\", "/");
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(audioFile.FileName);
+                    string uploadPath = Path.Combine(_env.WebRootPath, "audio", fileName);
+                    using (var stream = new FileStream(uploadPath, FileMode.Create))
+                    {
+                        await audioFile.CopyToAsync(stream);
+                    }
+                    song.AudioFilePath = "/audio/" + fileName;
                 }
-
-
-
 
                 _context.Add(song);
                 await _context.SaveChangesAsync();
@@ -114,57 +104,50 @@ namespace Talor_music.Controllers
             return View(song);
         }
 
-        // GET: Songs/Edit/5
+        // --- רק מנהל יכול לערוך ---
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
+            if (id == null) return NotFound();
             var song = await _context.Song.FindAsync(id);
-            if (song == null)
-            {
-                return NotFound();
-            }
+            if (song == null) return NotFound();
             ViewData["ArtistID"] = new SelectList(_context.Artist, "ArtistID", "Name", song.ArtistID);
             return View(song);
         }
 
-        // POST: Songs/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("SongID,Title,Genre,Price,ArtistID,ImagePath")] Song song, IFormFile? imageFile)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, [Bind("SongID,Title,Genre,Price,ArtistID,ImagePath,AudioFilePath")] Song song, IFormFile? imageFile, IFormFile? audioFile)
         {
-            if (id != song.SongID)
-            {
-                return NotFound();
-            }
+            if (id != song.SongID) return NotFound();
 
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // עדכון תמונה (רק אם הועלתה חדשה)
                     if (imageFile != null && imageFile.Length > 0)
                     {
-                        var uploads = Path.Combine(_env.WebRootPath, "images/songs");
-                        Directory.CreateDirectory(uploads);
-                        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                        var filePath = Path.Combine(uploads, fileName);
-                        using var stream = System.IO.File.Create(filePath);
-                        await imageFile.CopyToAsync(stream);
-                        // optionally delete old file
-                        if (!string.IsNullOrEmpty(song.ImagePath))
+                        string fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                        string uploadPath = Path.Combine(_env.WebRootPath, "images", fileName);
+                        using (var stream = new FileStream(uploadPath, FileMode.Create))
                         {
-                            var old = Path.Combine(_env.WebRootPath, song.ImagePath.Replace('/', Path.DirectorySeparatorChar));
-                            if (System.IO.File.Exists(old))
-                            {
-                                System.IO.File.Delete(old);
-                            }
+                            await imageFile.CopyToAsync(stream);
                         }
-                        song.ImagePath = Path.Combine("images/songs", fileName).Replace("\\", "/");
+                        song.ImagePath = "/images/" + fileName;
+                    }
+
+                    // עדכון אודיו (רק אם הועלה חדש)
+                    if (audioFile != null && audioFile.Length > 0)
+                    {
+                        string fileName = Guid.NewGuid().ToString() + Path.GetExtension(audioFile.FileName);
+                        string uploadPath = Path.Combine(_env.WebRootPath, "audio", fileName);
+                        using (var stream = new FileStream(uploadPath, FileMode.Create))
+                        {
+                            await audioFile.CopyToAsync(stream);
+                        }
+                        song.AudioFilePath = "/audio/" + fileName;
                     }
 
                     _context.Update(song);
@@ -172,14 +155,8 @@ namespace Talor_music.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!SongExists(song.SongID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!SongExists(song.SongID)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -187,43 +164,27 @@ namespace Talor_music.Controllers
             return View(song);
         }
 
-        // GET: Songs/Delete/5
+        // --- רק מנהל יכול למחוק ---
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var song = await _context.Song
-                .Include(s => s.Artist)
-                .FirstOrDefaultAsync(m => m.SongID == id);
-            if (song == null)
-            {
-                return NotFound();
-            }
-
+            if (id == null) return NotFound();
+            var song = await _context.Song.Include(s => s.Artist).FirstOrDefaultAsync(m => m.SongID == id);
+            if (song == null) return NotFound();
             return View(song);
         }
 
-        // POST: Songs/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var song = await _context.Song.FindAsync(id);
-            if (song != null)
-            {
-                _context.Song.Remove(song);
-            }
-
+            if (song != null) _context.Song.Remove(song);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool SongExists(int id)
-        {
-            return _context.Song.Any(e => e.SongID == id);
-        }
+        private bool SongExists(int id) => _context.Song.Any(e => e.SongID == id);
     }
 }

@@ -41,11 +41,29 @@
         font-weight: 700;
         color: white;
         text-transform: uppercase;
+        text-decoration: none;
+        display: inline-block;
     }
 
         .btn-primary-music:hover {
             background: #1ed760;
             color: white;
+        }
+
+    .btn-login-outline {
+        border: 2px solid white;
+        color: white;
+        border-radius: 30px;
+        padding: 12px 35px;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+        .btn-login-outline:hover {
+            background: white;
+            color: #333;
         }
 </style>
 
@@ -53,9 +71,22 @@
     <div class="container">
         <h1 class="display-3 fw-bold mb-3">Your Soundtrack, Your Way</h1>
         <p class="lead mb-5 opacity-75">גלו אמנים חדשים, צרו פלייליסטים והורידו את המוזיקה שאתם אוהבים.</p>
+
         <div class="d-flex justify-content-center gap-3">
+            @* כפתור כניסה לחנות - תמיד מופיע *@
             <a asp-controller="Songs" asp-action="Index" class="btn btn-primary-music btn-lg shadow">התחילו להאזין</a>
-            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-outline-light btn-lg rounded-pill px-4">הצטרפו עכשיו</a>
+
+            @* הצגת כפתורי התחברות רק אם המשתמש לא מחובר *@
+            @if (!User.Identity.IsAuthenticated)
+            {
+                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-login-outline btn-lg">התחברו</a>
+                <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-outline-light btn-lg rounded-pill px-4 border-2">הצטרפו עכשיו</a>
+            }
+            else
+            {
+                @* אם הוא מחובר, נראה לו הודעה נחמדה במקום כפתורי רישום *@
+                <span class="align-self-center ms-3 fw-bold text-success text-uppercase">ברוך הבא חזרה! ♫</span>
+            }
         </div>
     </div>
 </div>
