@@ -14,11 +14,6 @@
         font-family: 'Assistant', sans-serif;
     }
 
-    .song-details-container {
-        margin-top: 50px;
-        margin-bottom: 50px;
-    }
-
     .glass-card {
         background: white;
         border: none;
@@ -27,51 +22,14 @@
         overflow: hidden;
     }
 
-    .cover-section {
-        background: linear-gradient(135deg, #1db954 0%, #191414 100%);
-        padding: 40px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .main-cover {
-        width: 300px;
-        height: 300px;
-        object-fit: cover;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        transition: transform 0.3s ease;
-    }
-
-        .main-cover:hover {
-            transform: scale(1.02);
-        }
-
-    .info-section {
-        padding: 40px;
-    }
-
-    .song-title {
-        font-size: 3rem;
-        font-weight: 800;
-        color: #191414;
-        margin-bottom: 0;
-    }
-
-    .artist-name {
-        font-size: 1.5rem;
-        color: #1db954;
-        font-weight: 600;
-    }
-
     .detail-item {
         display: flex;
         align-items: center;
         margin-bottom: 15px;
-        padding: 10px;
+        padding: 12px;
         background: #f8f9fa;
         border-radius: 15px;
+        transition: 0.3s;
     }
 
     .detail-icon {
@@ -82,110 +40,104 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-right: 15px;
+        margin-left: 15px;
+        @* שינוי לצד שמאל בגלל העברית *@
         color: #1db954;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
 
     .price-badge {
-        font-size: 2rem;
+        font-size: 1.8rem;
         font-weight: 800;
-        color: #191414;
+        color: #1db954;
     }
 
     .btn-custom {
         border-radius: 50px;
-        padding: 12px 30px;
+        padding: 10px 25px;
         font-weight: bold;
         transition: 0.3s;
     }
-
-    .btn-edit {
-        background: #191414;
-        color: white;
-        border: none;
-    }
-
-        .btn-edit:hover {
-            background: #000;
-            color: white;
-            transform: translateY(-2px);
-        }
 </style>
 
-<div class="container song-details-container">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="glass-card">
-                <div class="row g-0">
-                    <div class="col-md-5 cover-section">
-                        @{
-                            var imgSrc = string.IsNullOrEmpty(Model.ImagePath)
-                            ? Url.Content("~/images/placeholder.png")
-                            : Url.Content("~/" + Model.ImagePath);
-                        }
-                        <img src="@imgSrc" alt="Cover for @Model.Title" class="main-cover" onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'" />
+<div class="container mt-5 text-end" dir="rtl">
+    @* הוספת כיוון עברית *@
+    <div class="card glass-card shadow border-0 p-4">
+        <div class="row align-items-center">
+
+            @* צד ימין: תמונת השיר *@
+            <div class="col-md-4 text-center">
+                @if (!string.IsNullOrEmpty(Model.ImagePath))
+                {
+                    <img src="@Model.ImagePath" class="img-fluid rounded shadow" style="max-height: 350px; border-radius: 20px;"
+                         onerror="this.src='https://via.placeholder.com/300?text=No+Image'" />
+                }
+                else
+                {
+                    <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height: 300px;">
+                        <i class="bi bi-music-note-beamed display-1 text-muted"></i>
                     </div>
+                }
+            </div>
 
-                    <div class="col-md-7 info-section">
-                        <div class="mb-4">
-                            <span class="badge bg-success mb-2">שיר חדש בחנות</span>
-                            <h1 class="song-title">@Model.Title</h1>
-                            <p class="artist-name"><i class="bi bi-person-fill me-2"></i>@Model.Artist.Name</p>
-                        </div>
+            @* צד שמאל: פרטי השיר *@
+            <div class="col-md-8">
+                <h1 class="fw-bold display-4 mb-0">@Model.Title</h1>
+                <h4 class="text-primary mb-4">@Model.Artist?.Name</h4>
 
-                        <hr class="my-4 opacity-25">
-
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <div class="detail-item">
-                                    <div class="detail-icon"><i class="bi bi-music-note-list"></i></div>
-                                    <div>
-                                        <small class="text-muted d-block">ז'אנר</small>
-                                        <strong>@Model.Genre</strong>
-                                    </div>
-                                </div>
+                <div class="row mb-4">
+                    @* ז'אנר *@
+                    <div class="col-sm-6">
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="bi bi-tags-fill"></i>
                             </div>
-                            <div class="col-sm-6">
-                                <div class="detail-item">
-                                    <div class="detail-icon"><i class="bi bi-tag"></i></div>
-                                    <div>
-                                        <small class="text-muted d-block">מחיר</small>
-                                        <strong class="price-badge">@String.Format("{0:C}", Model.Price)</strong>
-                                    </div>
-                                </div>
+                            <div>
+                                <small class="text-muted d-block">ז'אנר</small>
+                                <span class="fw-bold">@Model.Genre</span>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="mt-5 d-flex gap-2">
-                            <a asp-action="Edit" asp-route-id="@Model?.SongID" class="btn btn-custom btn-edit">
-                                <i class="bi bi-pencil-square me-2"></i>ערוך פרטי שיר
-                            </a>
-                            <a asp-action="Index" class="btn btn-custom btn-outline-secondary">
-                                <i class="bi bi-arrow-left me-2"></i>חזרה לרשימה
-                            </a>
+                    @* מחיר *@
+                    <div class="col-sm-6">
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">מחיר</small>
+                                <span class="price-badge">₪@Model.Price</span>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                @* נגן שמע *@
+                <div class="my-4 p-3 bg-light rounded shadow-sm border">
+                    <h6 class="mb-3"><i class="bi bi-play-circle-fill me-2 text-success"></i>האזנה לקטע מהשיר:</h6>
+                    @if (!string.IsNullOrEmpty(Model.AudioFilePath))
+                    {
+                        <audio controls class="w-100">
+                            <source src="@Model.AudioFilePath" type="audio/mpeg">
+                            הדפדפן שלך לא תומך בנגן.
+                        </audio>
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-0 italic">לא הועלה קובץ שמע לשיר זה.</p>
+                    }
+                </div>
+
+                @* כפתורי פעולה *@
+                <div class="mt-4 d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-custom">חזרה לחנות</a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.SongID" class="btn btn-warning btn-custom">עריכת שיר</a>
+                    }
                 </div>
             </div>
         </div>
     </div>
-    @if (!string.IsNullOrEmpty(Model.AudioFilePath))
-    {
-        <div class="mt-4 p-3 border rounded-pill bg-light d-flex align-items-center shadow-sm" style="max-width: 400px;">
-            <div class="me-3 ps-2">
-                <i class="bi bi-play-circle-fill text-success fs-2"></i>
-            </div>
-            <div class="flex-grow-1">
-                <audio controls class="w-100" style="height: 30px;">
-                    <source src="@Url.Content("~/" + Model.AudioFilePath)" type="audio/mpeg">
-                    הדפדפן שלך לא תומך בנגן שמע.
-                </audio>
-            </div>
-        </div>
-    }
-    else
-    {
-        <p class="text-muted small mt-3"><i class="bi bi-exclamation-circle me-1"></i> לא הועלה קטע שמע לשיר זה.</p>
-    }
 </div>

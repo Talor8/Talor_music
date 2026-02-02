@@ -97,6 +97,7 @@
                     <form asp-action="Create">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
 
+                        @* שם הפלייליסט *@
                         <div class="mb-4">
                             <label asp-for="Title" class="form-label">
                                 <i class="bi bi-pencil-fill me-2 text-primary"></i>שם הפלייליסט
@@ -105,16 +106,29 @@
                             <span asp-validation-for="Title" class="text-danger small"></span>
                         </div>
 
+                        @* זיהוי לקוח אוטומטי או בחירת מנהל *@
                         <div class="mb-4">
-                            <label asp-for="CustomerID" class="form-label">
-                                <i class="bi bi-person-circle me-2 text-primary"></i>שייך ללקוח
+                            <label class="form-label">
+                                <i class="bi bi-person-circle me-2 text-primary"></i>אימייל הלקוח
                             </label>
-                            <select asp-for="CustomerID" class="form-control form-control-custom" asp-items="ViewBag.CustomerID">
-                                <option value="">-- בחר לקוח --</option>
-                            </select>
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                                @* מנהל רואה רשימת אימיילים לבחירה *@
+                                <select asp-for="CustomerID" class="form-control form-control-custom" asp-items="ViewBag.CustomerID">
+                                    <option value="">-- בחר אימייל לקוח --</option>
+                                </select>
+                            }
+                            else
+                            {
+                                @* לקוח רגיל רואה את המייל שלו בתיבה נעולה *@
+                                <input type="text" class="form-control form-control-custom bg-light" value="@User.Identity.Name" readonly />
+                                @* ה-ID נשלח נסתר, והקונטרולר ימלא אותו אוטומטית כפי שהגדרנו *@
+                            }
                             <span asp-validation-for="CustomerID" class="text-danger small"></span>
                         </div>
 
+                        @* תאריך יצירה *@
                         <div class="mb-5">
                             <label asp-for="DateAdded" class="form-label">
                                 <i class="bi bi-calendar-event me-2 text-primary"></i>תאריך יצירה

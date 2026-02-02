@@ -26,6 +26,7 @@ namespace Talor_music.Controllers
         }
 
         // GET: Customers/Details/5
+        // GET: Customers/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,7 +35,9 @@ namespace Talor_music.Controllers
             }
 
             var customer = await _context.Customer
+                .Include(c => c.Playlists) // השורה הזו טוענת את הפלייליסטים של הלקוח!
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (customer == null)
             {
                 return NotFound();

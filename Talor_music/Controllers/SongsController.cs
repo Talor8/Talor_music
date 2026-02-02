@@ -14,7 +14,7 @@ using Talor_music.Models;
 
 namespace Talor_music.Controllers
 {
-    [Authorize] // ברירת מחדל: רק משתמשים מחוברים
+    [Authorize] // כברירת מחדל: רק משתמשים מחוברים יכולים לגשת
     public class SongsController : Controller
     {
         private readonly Talor_musicContext _context;
@@ -26,34 +26,23 @@ namespace Talor_music.Controllers
             _env = env;
         }
 
-        // --- כולם יכולים לראות את רשימת השירים ---
-        [AllowAnonymous]
+        [AllowAnonymous] // כולם יכולים לראות את הרשימה
         public async Task<IActionResult> Index(string searchString)
         {
             var songs = _context.Song.Include(s => s.Artist).AsQueryable();
-
             if (!string.IsNullOrEmpty(searchString))
             {
-                songs = songs.Where(s => s.Title.Contains(searchString)
-                                      || s.Artist.Name.Contains(searchString)
-                                      || s.Genre.Contains(searchString));
+                songs = songs.Where(s => s.Title.Contains(searchString) || s.Artist.Name.Contains(searchString) || s.Genre.Contains(searchString));
             }
-
             return View(await songs.ToListAsync());
         }
 
-        // --- כולם יכולים לראות פרטים ---
-        [AllowAnonymous]
+        [AllowAnonymous] // כולם יכולים לראות פרטים
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-
-            var song = await _context.Song
-                .Include(s => s.Artist)
-                .FirstOrDefaultAsync(m => m.SongID == id);
-
+            var song = await _context.Song.Include(s => s.Artist).FirstOrDefaultAsync(m => m.SongID == id);
             if (song == null) return NotFound();
-
             return View(song);
         }
 
@@ -72,27 +61,19 @@ namespace Talor_music.Controllers
         {
             if (ModelState.IsValid)
             {
-                // שמירת תמונה
                 if (imageFile != null && imageFile.Length > 0)
                 {
                     string fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
                     string uploadPath = Path.Combine(_env.WebRootPath, "images", fileName);
-                    using (var stream = new FileStream(uploadPath, FileMode.Create))
-                    {
-                        await imageFile.CopyToAsync(stream);
-                    }
+                    using (var stream = new FileStream(uploadPath, FileMode.Create)) { await imageFile.CopyToAsync(stream); }
                     song.ImagePath = "/images/" + fileName;
                 }
 
-                // שמירת קובץ אודיו
                 if (audioFile != null && audioFile.Length > 0)
                 {
                     string fileName = Guid.NewGuid().ToString() + Path.GetExtension(audioFile.FileName);
                     string uploadPath = Path.Combine(_env.WebRootPath, "audio", fileName);
-                    using (var stream = new FileStream(uploadPath, FileMode.Create))
-                    {
-                        await audioFile.CopyToAsync(stream);
-                    }
+                    using (var stream = new FileStream(uploadPath, FileMode.Create)) { await audioFile.CopyToAsync(stream); }
                     song.AudioFilePath = "/audio/" + fileName;
                 }
 
@@ -126,29 +107,25 @@ namespace Talor_music.Controllers
             {
                 try
                 {
-                    // עדכון תמונה (רק אם הועלתה חדשה)
+                    // טיפול בתמונה
                     if (imageFile != null && imageFile.Length > 0)
                     {
                         string fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
                         string uploadPath = Path.Combine(_env.WebRootPath, "images", fileName);
-                        using (var stream = new FileStream(uploadPath, FileMode.Create))
-                        {
-                            await imageFile.CopyToAsync(stream);
-                        }
+                        using (var stream = new FileStream(uploadPath, FileMode.Create)) { await imageFile.CopyToAsync(stream); }
                         song.ImagePath = "/images/" + fileName;
                     }
+                    else { _context.Entry(song).Property(x => x.ImagePath).IsModified = false; }
 
-                    // עדכון אודיו (רק אם הועלה חדש)
+                    // טיפול באודיו
                     if (audioFile != null && audioFile.Length > 0)
                     {
                         string fileName = Guid.NewGuid().ToString() + Path.GetExtension(audioFile.FileName);
                         string uploadPath = Path.Combine(_env.WebRootPath, "audio", fileName);
-                        using (var stream = new FileStream(uploadPath, FileMode.Create))
-                        {
-                            await audioFile.CopyToAsync(stream);
-                        }
+                        using (var stream = new FileStream(uploadPath, FileMode.Create)) { await audioFile.CopyToAsync(stream); }
                         song.AudioFilePath = "/audio/" + fileName;
                     }
+                    else { _context.Entry(song).Property(x => x.AudioFilePath).IsModified = false; }
 
                     _context.Update(song);
                     await _context.SaveChangesAsync();

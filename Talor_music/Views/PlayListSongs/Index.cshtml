@@ -76,17 +76,19 @@
             transform: scale(1.05);
         }
 
-    .action-link {
-        border-radius: 10px;
-        padding: 8px 15px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: 0.2s;
-    }
-
     .date-text {
         font-size: 0.85rem;
         color: #6b7280;
+    }
+
+    .customer-badge {
+        background: #fff4e5;
+        color: #b95000;
+        padding: 5px 12px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid #ffd8a8;
     }
 </style>
 
@@ -119,7 +121,6 @@
 
             @foreach (var item in Model)
             {
-                // חישוב מחיר כולל
                 var total = (item.Songs != null && item.Songs.Any()) ? item.Songs.Sum(s => s.Price) : 0m;
 
                 <div class="card playlist-card shadow-sm p-4">
@@ -131,11 +132,17 @@
                         </div>
 
                         <div class="col">
-                            <h3 class="fw-bold mb-1">@Html.DisplayFor(modelItem => item.Title)</h3>
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="badge bg-light text-dark me-3 border">
-                                    <i class="bi bi-person me-1"></i> ID: @item.CustomerID
-                                </span>
+                            <h3 class="fw-bold mb-1">@item.Title</h3>
+
+                            <div class="d-flex align-items-center gap-3">
+                                @* לוגיקה חדשה: מציג אימייל רק למנהל. לקוח רגיל לא יראה כלום פה *@
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <span class="customer-badge">
+                                        <i class="bi bi-person-circle me-1"></i> @item.Customer?.Email
+                                    </span>
+                                }
+
                                 <span class="date-text">
                                     <i class="bi bi-calendar3 me-1"></i> @item.DateAdded.ToShortDateString()
                                 </span>
@@ -145,7 +152,7 @@
                         <div class="col-md-auto text-center my-3 my-md-0">
                             <div class="text-muted small mb-1 text-uppercase fw-bold">Total Value</div>
                             <div class="price-badge">
-                                @String.Format("{0:C}", total)
+                                ₪@total.ToString("N2")
                             </div>
                         </div>
 

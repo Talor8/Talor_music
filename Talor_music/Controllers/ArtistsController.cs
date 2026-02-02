@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization; // הוספתי את ה-Using הזה עבור ההרשאות
 using Talor_music.Data;
 using Talor_music.Models;
 
@@ -19,12 +20,13 @@ namespace Talor_music.Controllers
             _context = context;
         }
 
-        // GET: Artists
+        // --- כולם יכולים לראות את רשימת האמנים ---
         public async Task<IActionResult> Index()
         {
             return View(await _context.Artist.ToListAsync());
         }
 
+        // --- כולם יכולים לראות פרטי אמן ---
         // GET: Artists/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -33,8 +35,11 @@ namespace Talor_music.Controllers
                 return NotFound();
             }
 
+            // Include(a => a.Songs) - זה החלק שמושך את השירים מהטבלה השנייה
             var artist = await _context.Artist
+                .Include(a => a.Songs)
                 .FirstOrDefaultAsync(m => m.ArtistID == id);
+
             if (artist == null)
             {
                 return NotFound();
@@ -43,17 +48,16 @@ namespace Talor_music.Controllers
             return View(artist);
         }
 
-        // GET: Artists/Create
+        // --- רק מנהל יכול ליצור אמן חדש ---
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Artists/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("ArtistID,Name")] Artist artist)
         {
             if (ModelState.IsValid)
@@ -65,33 +69,23 @@ namespace Talor_music.Controllers
             return View(artist);
         }
 
-        // GET: Artists/Edit/5
+        // --- רק מנהל יכול לערוך אמן ---
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var artist = await _context.Artist.FindAsync(id);
-            if (artist == null)
-            {
-                return NotFound();
-            }
+            if (artist == null) return NotFound();
             return View(artist);
         }
 
-        // POST: Artists/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("ArtistID,Name")] Artist artist)
         {
-            if (id != artist.ArtistID)
-            {
-                return NotFound();
-            }
+            if (id != artist.ArtistID) return NotFound();
 
             if (ModelState.IsValid)
             {
@@ -102,41 +96,30 @@ namespace Talor_music.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ArtistExists(artist.ArtistID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!ArtistExists(artist.ArtistID)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
             return View(artist);
         }
 
-        // GET: Artists/Delete/5
+        // --- רק מנהל יכול למחוק אמן ---
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var artist = await _context.Artist
                 .FirstOrDefaultAsync(m => m.ArtistID == id);
-            if (artist == null)
-            {
-                return NotFound();
-            }
+            if (artist == null) return NotFound();
 
             return View(artist);
         }
 
-        // POST: Artists/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var artist = await _context.Artist.FindAsync(id);

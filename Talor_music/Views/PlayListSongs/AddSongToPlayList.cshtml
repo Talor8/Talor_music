@@ -1,41 +1,149 @@
 ﻿@model IEnumerable<Talor_music.Models.PlayListSong>
 
 @{
-    ViewData["Title"] = "Add song to playlist";
+    ViewData["Title"] = "Add Song to Playlist";
     var songId = ViewBag.SongId as int?;
 }
 
-<h1>Add song to playlist</h1>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
-@if(songId != null)
-{
-    <p>Adding song id: <strong>@songId</strong></p>
-}
+<style>
+    body {
+        background: #121212; /* רקע שחור עמוק */
+        color: #ffffff;
+        font-family: 'Assistant', sans-serif;
+    }
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.Title)</th>
-            <th>@Html.DisplayNameFor(model => model.CustomerID)</th>
-            <th>@Html.DisplayNameFor(model => model.DateAdded)</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>@Html.DisplayFor(modelItem => item.Title)</td>
-            <td>@Html.DisplayFor(modelItem => item.CustomerID)</td>
-            <td>@Html.DisplayFor(modelItem => item.DateAdded)</td>
-            <td>
-                <a asp-action="AddSongToListAction" asp-route-playListId="@item.PlaylistSongID" asp-route-songId="@songId" class="btn btn-sm btn-primary">Add</a>
-                <a asp-action="Details" asp-route-id="@item.PlaylistSongID" class="btn btn-sm btn-link">Details</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    .main-container {
+        padding-top: 50px;
+        max-width: 900px;
+    }
 
-<p>
-    <a asp-controller="Songs" asp-action="Index">Back to Songs</a>
-</p>
+    .header-section {
+        background: linear-gradient(180deg, #1db95433 0%, #121212 100%);
+        padding: 40px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .playlist-card {
+        background: #181818;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: 0.3s;
+        border: 1px solid #282828;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+        .playlist-card:hover {
+            background: #282828;
+            transform: scale(1.02);
+            border-color: #1db954;
+        }
+
+    .playlist-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .playlist-icon {
+        width: 60px;
+        height: 60px;
+        background: #282828;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #1db954;
+    }
+
+    .btn-spotify {
+        background: #1db954;
+        color: black;
+        font-weight: bold;
+        border-radius: 50px;
+        padding: 10px 25px;
+        border: none;
+        transition: 0.2s;
+    }
+
+        .btn-spotify:hover {
+            background: #1ed760;
+            transform: scale(1.05);
+            color: black;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px;
+        opacity: 0.6;
+    }
+</style>
+
+<div class="container main-container">
+    <div class="header-section">
+        <i class="bi bi-music-note-list text-success" style="font-size: 3rem;"></i>
+        <h1 class="fw-bold mt-3">בחר פלייליסט</h1>
+        @if (songId != null)
+        {
+            <p class="text-muted">אתה מוסיף כעת את שיר מספר <span class="text-success fw-bold">#@songId</span></p>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-plus-circle mb-3" style="font-size: 3rem;"></i>
+            <h3>לא נמצאו פלייליסטים להצגה</h3>
+            <p>צור פלייליסט חדש כדי להתחיל לבנות את האוסף שלך</p>
+            <a asp-action="Create" class="btn btn-outline-success mt-3">צור פלייליסט חדש</a>
+        </div>
+    }
+    else
+    {
+        <div class="playlist-list">
+            @foreach (var item in Model)
+            {
+                <div class="playlist-card">
+                    <div class="playlist-info">
+                        <div class="playlist-icon">
+                            <i class="bi bi-collection-play"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 fw-bold">@item.Title</h4>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar3 me-1"></i> נוצר ב: @item.DateAdded.ToString("dd/MM/yyyy")
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <span class="ms-2 badge bg-dark">ID: @item.CustomerID</span>
+                                }
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        @* כאן הכפתור שולח לפעולה AddSongToListAction עם ה-ID של הפלייליסט וה-ID של השיר *@
+                        <a asp-action="AddSongToListAction"
+                           asp-route-playListId="@item.PlaylistSongID"
+                           asp-route-songId="@songId"
+                           class="btn btn-spotify">
+                            <i class="bi bi-plus-lg me-1"></i> הוסף לכאן
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="text-center mt-5 mb-5">
+        <a asp-controller="Songs" asp-action="Index" class="btn btn-link text-success text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i> חזרה לחנות השירים
+        </a>
+    </div>
+</div>

@@ -54,6 +54,8 @@
         padding: 12px 30px;
         font-weight: bold;
         box-shadow: 0 4px 15px rgba(255, 60, 172, 0.3);
+        text-decoration: none;
+        display: inline-block;
     }
 
         .btn-create:hover {
@@ -79,9 +81,14 @@
     <div class="container">
         <h1 class="display-4 fw-bold">נבחרת האמנים</h1>
         <p class="lead">גלו את היוצרים שמאחורי המוזיקה שאתם אוהבים</p>
-        <a asp-action="Create" class="btn btn-create mt-3">
-            <i class="bi bi-person-plus-fill me-2"></i>הוספת אמן חדש
-        </a>
+
+        @* רק מנהל רואה את כפתור היצירה *@
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="Create" class="btn btn-create mt-3">
+                <i class="bi bi-person-plus-fill me-2"></i>הוספת אמן חדש
+            </a>
+        }
     </div>
 </div>
 
@@ -104,15 +111,21 @@
                     <hr class="my-3 opacity-25">
 
                     <div class="d-flex justify-content-center gap-2">
-                        <a asp-action="Edit" asp-route-id="@item.ArtistID" class="btn btn-action btn-outline-primary">
-                            <i class="bi bi-pencil-square me-1"></i>עריכה
-                        </a>
+                        @* כולם יכולים לראות פרטים *@
                         <a asp-action="Details" asp-route-id="@item.ArtistID" class="btn btn-action btn-outline-info">
                             <i class="bi bi-eye me-1"></i>פרטים
                         </a>
-                        <a asp-action="Delete" asp-route-id="@item.ArtistID" class="btn btn-action btn-outline-danger">
-                            <i class="bi bi-trash me-1"></i>מחיקה
-                        </a>
+
+                        @* רק מנהל רואה עריכה ומחיקה *@
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.ArtistID" class="btn btn-action btn-outline-primary">
+                                <i class="bi bi-pencil-square me-1"></i>עריכה
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.ArtistID" class="btn btn-action btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i>מחיקה
+                            </a>
+                        }
                     </div>
                 </div>
             </div>

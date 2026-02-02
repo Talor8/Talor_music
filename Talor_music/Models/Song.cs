@@ -27,6 +27,7 @@ namespace Talor_music.Models
         // Relative path under wwwroot, e.g. "images/songs/1.jpg" or "images/songs/uuid.jpg"
         public string? ImagePath { get; set; }
         public string? AudioFilePath { get; set; } // Store the path to the uploaded audio file
+
     }
 
 

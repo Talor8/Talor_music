@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;800&display=swap" rel="stylesheet">
 
 <style>
+    /* הסטייל שלך נשאר אותו דבר - הוא מצוין */
     body {
         background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
         font-family: 'Assistant', sans-serif;
@@ -66,6 +67,7 @@
         font-weight: 800;
         text-transform: uppercase;
         transition: 0.3s;
+        width: 100%;
     }
 
         .btn-save-edit:hover {
@@ -103,10 +105,13 @@
                 <div class="card-body p-4 p-md-5">
                     <form asp-action="Edit" enctype="multipart/form-data">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
+
+                        @* שדות נסתרים - קריטי להעברת הנתונים הקיימים ל-Controller *@
                         <input type="hidden" asp-for="SongID" />
+                        <input type="hidden" asp-for="ImagePath" />
+                        <input type="hidden" asp-for="AudioFilePath" />
 
                         <div class="row">
-                            @* צד ימין: פרטים טקסטואליים *@
                             <div class="col-md-7">
                                 <div class="mb-4">
                                     <label asp-for="Title" class="form-label">Song Title</label>
@@ -134,11 +139,10 @@
                                 </div>
                             </div>
 
-                            @* צד שמאל: מדיה (תמונה ושיר) *@
                             <div class="col-md-5">
-                                @* תמונת קאבר *@
                                 <div class="mb-4">
                                     <label class="form-label">Cover Image</label>
+                                    @* שים לב: ה-name חייב להיות imageFile בדיוק כמו בקונטרולר *@
                                     <input type="file" name="imageFile" id="imageFile" class="form-control d-none" accept="image/*" />
                                     <label for="imageFile" class="upload-label-custom mb-2">
                                         <i class="bi bi-image me-1"></i> Change Image
@@ -147,15 +151,15 @@
                                     @if (!string.IsNullOrEmpty(Model.ImagePath))
                                     {
                                         <div class="current-media-box text-center">
-                                            <img src="@Url.Content("~/" + Model.ImagePath)" class="img-fluid rounded shadow-sm" style="max-height: 150px;" />
+                                            <img src="@Url.Content("~" + Model.ImagePath)" class="img-fluid rounded shadow-sm" style="max-height: 150px;" />
                                             <div class="small text-muted mt-2">Current Cover</div>
                                         </div>
                                     }
                                 </div>
 
-                                @* קטע שמע *@
                                 <div class="mb-4">
                                     <label class="form-label">Audio File (MP3)</label>
+                                    @* שים לב: ה-name חייב להיות audioFile בדיוק כמו בקונטרולר *@
                                     <input type="file" name="audioFile" id="audioFile" class="form-control d-none" accept="audio/*" />
                                     <label for="audioFile" class="upload-label-custom mb-2">
                                         <i class="bi bi-mic me-1"></i> Change Audio
@@ -165,7 +169,7 @@
                                     {
                                         <div class="current-media-box">
                                             <audio controls class="w-100" style="height: 30px;">
-                                                <source src="@Url.Content("~/" + Model.AudioFilePath)" type="audio/mpeg">
+                                                <source src="@Url.Content("~" + Model.AudioFilePath)" type="audio/mpeg">
                                             </audio>
                                             <div class="small text-muted mt-2 text-center">Current Preview</div>
                                         </div>
@@ -180,7 +184,7 @@
                             <button type="submit" class="btn btn-save-edit">
                                 <i class="bi bi-check-circle me-2"></i> Save Changes
                             </button>
-                            <a asp-action="Index" class="btn btn-link text-muted">
+                            <a asp-action="Index" class="btn btn-link text-muted text-center">
                                 Cancel and go back
                             </a>
                         </div>
@@ -195,14 +199,21 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
     <script>
-        // שינוי טקסט הכפתורים כשנבחר קובץ חדש
+        // שיפור: הצגת שם הקובץ שנבחר במקום alert מציק
         document.getElementById('imageFile').onchange = function() {
-            if(this.files[0]) alert("New image selected: " + this.files[0].name);
+            if(this.files[0]) {
+                const label = document.querySelector('label[for="imageFile"]');
+                label.innerHTML = '<i class="bi bi-check"></i> ' + this.files[0].name;
+                label.style.background = "#d4edda";
+            }
         };
         document.getElementById('audioFile').onchange = function() {
-            if(this.files[0]) alert("New audio selected: " + this.files[0].name);
+            if(this.files[0]) {
+                const label = document.querySelector('label[for="audioFile"]');
+                label.innerHTML = '<i class="bi bi-check"></i> ' + this.files[0].name;
+                label.style.background = "#d4edda";
+            }
         };
     </script>
 }
