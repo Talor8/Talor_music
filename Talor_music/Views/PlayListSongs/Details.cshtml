@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Playlist Details";
+    var allSongs = ViewBag.AllSongs as IEnumerable<Talor_music.Models.Song>;
 }
 
 @* פונטים, אייקונים ו-Select2 *@
@@ -15,14 +16,13 @@
         font-family: 'Assistant', sans-serif;
     }
 
-    /* Header מרשים */
     .playlist-banner {
         background: linear-gradient(135deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
         color: white;
         padding: 60px 0;
         border-radius: 0 0 40px 40px;
         margin-bottom: 30px;
-        shadow: 0 10px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
 
     .glass-card {
@@ -33,7 +33,6 @@
         margin-bottom: 25px;
     }
 
-    /* עיצוב בחירת שיר */
     .add-song-section {
         background: #fff;
         padding: 25px;
@@ -48,7 +47,6 @@
         padding-top: 8px;
     }
 
-    /* טבלת שירים */
     .song-table thead {
         background: #f1f3f5;
     }
@@ -61,22 +59,19 @@
         letter-spacing: 1px;
     }
 
-    .song-table tbody tr {
-        transition: 0.3s;
+    .song-table tbody tr:hover {
+        background: #fdf2ff;
     }
-
-        .song-table tbody tr:hover {
-            background: #fdf2ff;
-        }
 
     .price-tag {
         color: #C850C0;
         font-weight: bold;
     }
 
-    .btn-action {
-        border-radius: 10px;
-        font-weight: 600;
+    /* עיצוב לסיכום הסופי */
+    .total-row {
+        background-color: #f8f9fa;
+        font-size: 1.1rem;
     }
 
     .btn-add {
@@ -86,6 +81,7 @@
         padding: 10px 25px;
         border-radius: 10px;
         transition: 0.3s;
+        width: 100%;
     }
 
         .btn-add:hover {
@@ -100,97 +96,91 @@
         <i class="bi bi-collection-play mb-3" style="font-size: 3.5rem;"></i>
         <h1 class="display-4 fw-bold">@Model.Title</h1>
         <div class="d-flex justify-content-center gap-3 opacity-75">
-            <span><i class="bi bi-person"></i> Customer: @Model.CustomerID</span>
+            <span><i class="bi bi-person"></i> Customer ID: @Model.CustomerID</span>
             <span>|</span>
             <span><i class="bi bi-calendar3"></i> Added: @Model.DateAdded.ToShortDateString()</span>
         </div>
     </div>
 </div>
 
-<div class="container pb-5">
+<div class="container pb-5" dir="rtl">
     <div class="row">
-        <div class="col-lg-4 mb-4">
+        <div class="col-lg-4 mb-4 order-lg-2">
             <div class="add-song-section shadow-sm text-center">
-                <h5 class="fw-bold mb-3"><i class="bi bi-plus-circle me-2"></i>Add Song to List</h5>
-                <form asp-action="AddSongToListAction" method="get">
+                <h5 class="fw-bold mb-3"><i class="bi bi-plus-circle me-2"></i>הוספת שיר לרשימה</h5>
+
+                <form id="addSongForm" asp-action="AddSongToListAction" method="post">
                     <input type="hidden" name="playListId" value="@Model.PlaylistSongID" />
                     <div class="mb-3 text-start">
-                        <select name="songId" class="select2 w-100">
-                            <option value="">Choose a song...</option>
-                            @if (ViewBag.Songs != null)
+                        <select name="songId" id="songSelect" class="select2 w-100" onchange="this.form.submit()">
+                            <option value="">חפש שיר להוספה...</option>
+                            @if (allSongs != null)
                             {
-                                foreach (var song in ViewBag.Songs)
+                                foreach (var song in allSongs)
                                 {
-                                    <option value="@song.SongID">@song.Title (@song.Genre)</option>
+                                    <option value="@song.SongID">@song.Title (@song.Price ₪)</option>
                                 }
                             }
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-add w-100 shadow-sm">
-                        Confirm & Add
-                    </button>
+                    <p class="small text-muted">בחר שיר כדי להוסיף אותו מיידית</p>
                 </form>
             </div>
 
-            <div class="mt-4 d-flex justify-content-between">
-                <a asp-action="Edit" asp-route-id="@Model?.PlaylistSongID" class="btn btn-outline-dark btn-action flex-grow-1 me-2">
-                    <i class="bi bi-pencil"></i> Edit Info
-                </a>
-                <a asp-action="Index" class="btn btn-outline-secondary btn-action flex-grow-1">
-                    <i class="bi bi-arrow-left"></i> Back
-                </a>
+            <div class="mt-4 d-flex justify-content-between gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.PlaylistSongID" class="btn btn-outline-dark flex-grow-1">עריכת פרטים</a>
+                <a asp-action="Index" class="btn btn-outline-secondary flex-grow-1">חזרה</a>
             </div>
         </div>
 
-        <div class="col-lg-8">
+        <div class="col-lg-8 order-lg-1">
             <div class="glass-card p-4">
-                <h4 class="fw-bold mb-4"><i class="bi bi-music-note-list me-2"></i>Playlist Content</h4>
-
-                @if (Model.Songs != null && Model.Songs.Any())
-                {
-                    <div class="table-responsive">
-                        <table class="table align-middle song-table">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Artist</th>
-                                    <th>Genre</th>
-                                    <th>Price</th>
-                                    <th class="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var s in Model.Songs)
+                <h4 class="fw-bold mb-4"><i class="bi bi-music-note-list me-2"></i>תוכן הפלייליסט</h4>
+                <div class="table-responsive">
+                    <table class="table align-middle song-table">
+                        <thead>
+                            <tr>
+                                <th>שם השיר</th>
+                                <th>אמן</th>
+                                <th>מחיר</th>
+                                <th class="text-end">מידע</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Songs != null && Model.Songs.Any())
+                            {
+                                foreach (var s in Model.Songs)
                                 {
                                     <tr>
-                                        <td><strong class="text-dark">@s.Title</strong></td>
-                                        <td><span class="text-muted">@(s.Artist != null ? s.Artist.Name : "Unknown")</span></td>
-                                        <td><span class="badge bg-light text-dark border">@s.Genre</span></td>
-                                        <td><span class="price-tag">@String.Format("{0:C}", s.Price)</span></td>
+                                        <td><strong>@s.Title</strong></td>
+                                        <td>@(s.Artist?.Name ?? "לא ידוע")</td>
+                                        <td><span class="price-tag">₪@s.Price</span></td>
                                         <td class="text-end">
-                                            <a asp-controller="Songs" asp-action="Details" asp-route-id="@s.SongID" class="btn btn-sm btn-link text-decoration-none">
-                                                <i class="bi bi-info-circle"></i> Info
+                                            <a asp-controller="Songs" asp-action="Details" asp-route-id="@s.SongID" class="text-muted">
+                                                <i class="bi bi-info-circle"></i>
                                             </a>
                                         </td>
                                     </tr>
                                 }
-                            </tbody>
-                            <tfoot>
-                                <tr class="table-light">
-                                    <td colspan="3" class="text-end fw-bold">Total Playlist Value:</td>
-                                    <td colspan="2"><h5 class="price-tag mb-0">@String.Format("{0:C}", Model.Songs.Sum(s => s.Price))</h5></td>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">אין שירים ברשימה זו עדיין.</td>
                                 </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                }
-                else
-                {
-                    <div class="text-center py-5">
-                        <i class="bi bi-disc text-muted mb-3" style="font-size: 3rem; display: block;"></i>
-                        <p class="text-muted">No songs in this playlist yet. Start adding some!</p>
-                    </div>
-                }
+                            }
+                        </tbody>
+                        @* שורת הסיכום שביקשת - עכשיו היא בעיצוב שתואם לבאנר *@
+                        <tfoot class="total-row">
+                            <tr>
+                                <td colspan="2" class="fw-bold">סה"כ שווי הפלייליסט:</td>
+                                <td colspan="2" class="fw-bold text-end" style="color: #C850C0;">
+                                    ₪@(Model.Songs?.Sum(s => s.Price) ?? 0)
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -201,10 +191,10 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function () {
-            $('.select2').select2({
-                placeholder: "Search for a song...",
+            $('#songSelect').select2({
+                placeholder: "הקלד שם שיר...",
                 allowClear: true,
-                width: '100%'
+                dir: "rtl"
             });
         });
     </script>

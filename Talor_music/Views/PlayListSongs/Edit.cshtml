@@ -30,6 +30,7 @@
     .form-control-lg {
         border-radius: 12px;
         border: 1px solid #ddd;
+        text-align: right;
     }
 
     .btn-update {
@@ -40,12 +41,19 @@
         font-weight: bold;
         transition: 0.3s;
         color: white;
+        cursor: pointer;
     }
 
         .btn-update:hover {
             background: #000;
             transform: translateY(-2px);
         }
+
+    label {
+        display: block;
+        text-align: right;
+        margin-bottom: 8px;
+    }
 </style>
 
 <div class="container py-5">
@@ -55,55 +63,32 @@
                 <div class="card-header-edit">
                     <i class="bi bi-pencil-square mb-3" style="font-size: 3rem;"></i>
                     <h2 class="fw-bold">Edit Playlist</h2>
-                    <p class="mb-0 opacity-75">עדכון פרטי הפלייליסט הקיים</p>
+                    <p class="mb-0 opacity-75">עדכון שם הפלייליסט</p>
                 </div>
                 <div class="card-body p-5">
-                    <form asp-action="Edit">
+                    <form asp-action="Edit" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                        @* שדות מוסתרים שחייבים לעבור כדי שהעדכון יצליח *@
+                        @* שדות מוסתרים - חובה כדי שהשמירה תעבוד מבלי שהמשתמש יראה אותם *@
                         <input type="hidden" asp-for="PlaylistSongID" />
+                        <input type="hidden" asp-for="CustomerID" />
+                        <input type="hidden" asp-for="DateAdded" />
 
-                        @* כותרת הפלייליסט *@
+                        @* רק השם ניתן לעריכה *@
                         <div class="mb-4">
-                            <label asp-for="Title" class="form-label fw-bold">Playlist Title</label>
-                            <input asp-for="Title" class="form-control form-control-lg" />
+                            <label asp-for="Title" class="form-label fw-bold">שם הפלייליסט החדש</label>
+                            <input asp-for="Title" class="form-control form-control-lg" placeholder="הקלד שם פלייליסט..." />
                             <span asp-validation-for="Title" class="text-danger small"></span>
                         </div>
 
-                        @* זיהוי הלקוח - אימייל במקום מספר *@
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Customer Email</label>
-                            @if (User.IsInRole("Admin"))
-                            {
-                                @* מנהל יכול לשנות את בעל הפלייליסט מתוך רשימת אימיילים *@
-                                <select asp-for="CustomerID" class="form-control form-control-lg" asp-items="ViewBag.CustomerID"></select>
-                            }
-                            else
-                            {
-                                @* לקוח רגיל רואה את האימייל שלו בלבד ולא יכול לשנות *@
-                                <input type="text" class="form-control form-control-lg bg-light" value="@User.Identity.Name" readonly />
-                                @* שומרים את ה-ID הקיים בשדה נסתר כדי שלא יתאפס *@
-                                <input type="hidden" asp-for="CustomerID" />
-                            }
-                            <span asp-validation-for="CustomerID" class="text-danger small"></span>
-                        </div>
-
-                        @* תאריך יצירה *@
-                        <div class="mb-4">
-                            <label asp-for="DateAdded" class="form-label fw-bold">Date Created</label>
-                            <input asp-for="DateAdded" class="form-control form-control-lg" type="date" />
-                            <span asp-validation-for="DateAdded" class="text-danger small"></span>
-                        </div>
-
                         <button type="submit" class="btn btn-update btn-lg w-100 shadow-sm">
-                            <i class="bi bi-save me-2"></i> Save Changes
+                            <i class="bi bi-save me-2"></i> שמור שינויים
                         </button>
                     </form>
                 </div>
                 <div class="card-footer bg-light border-0 py-3 text-center">
-                    <a asp-action="Index" class="text-muted text-decoration-none">
-                        <i class="bi bi-x-circle me-1"></i> Cancel and go back
+                    <a asp-action="Details" asp-route-id="@Model.PlaylistSongID" class="text-muted text-decoration-none">
+                        <i class="bi bi-x-circle me-1"></i> ביטול וחזרה
                     </a>
                 </div>
             </div>

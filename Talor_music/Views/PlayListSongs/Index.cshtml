@@ -29,11 +29,11 @@
         border-radius: 20px;
         margin-bottom: 20px;
         transition: all 0.3s ease;
-        border-left: 8px solid #667eea;
+        border-right: 8px solid #667eea; /* שיניתי לימין כי אנחנו בעברית */
     }
 
         .playlist-card:hover {
-            transform: translateX(10px);
+            transform: scale(1.01);
             box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
 
@@ -41,23 +41,22 @@
         font-size: 2.5rem;
         color: #764ba2;
         background: #f0edff;
-        width: 80px;
-        height: 80px;
+        width: 70px;
+        height: 70px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
-        margin-right: 20px;
     }
 
     .price-badge {
-        background: #eef2ff;
-        color: #4338ca;
-        padding: 10px 20px;
-        border-radius: 15px;
+        background: #f0edff;
+        color: #764ba2;
+        padding: 8px 18px;
+        border-radius: 12px;
         font-weight: 800;
-        font-size: 1.2rem;
-        display: inline-block;
+        font-size: 1.1rem;
+        border: 1px solid #dcd3ff;
     }
 
     .btn-create-playlist {
@@ -73,22 +72,15 @@
 
         .btn-create-playlist:hover {
             background: #f0edff;
-            transform: scale(1.05);
+            color: #667eea;
         }
-
-    .date-text {
-        font-size: 0.85rem;
-        color: #6b7280;
-    }
 
     .customer-badge {
         background: #fff4e5;
         color: #b95000;
-        padding: 5px 12px;
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        border: 1px solid #ffd8a8;
+        padding: 3px 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
     }
 </style>
 
@@ -105,69 +97,59 @@
     </div>
 </div>
 
-<div class="container pb-5">
+<div class="container pb-5" dir="rtl">
     <div class="row justify-content-center">
         <div class="col-lg-10">
             @if (!Model.Any())
             {
                 <div class="text-center py-5">
-                    <div class="mb-3 text-muted" style="font-size: 5rem;">
-                        <i class="bi bi-disc"></i>
-                    </div>
-                    <h3>עדיין אין לך פלייליסטים...</h3>
+                    <i class="bi bi-disc text-muted" style="font-size: 5rem;"></i>
+                    <h3 class="mt-3">עדיין אין לך פלייליסטים...</h3>
                     <p class="text-muted">זה הזמן ליצור את האוסף הראשון שלך!</p>
                 </div>
             }
 
             @foreach (var item in Model)
             {
-                var total = (item.Songs != null && item.Songs.Any()) ? item.Songs.Sum(s => s.Price) : 0m;
+                @* חישוב הסכום - יעבוד רק אם הוספת Include בקונטרולר *@
+                var total = item.Songs?.Sum(s => s.Price) ?? 0;
 
-                <div class="card playlist-card shadow-sm p-4">
-                    <div class="row align-items-center">
-                        <div class="col-auto d-none d-md-block">
+                <div class="card playlist-card shadow-sm p-3">
+                    <div class="row align-items-center text-center text-md-end">
+                        <div class="col-md-1 d-none d-md-block">
                             <div class="vinyl-icon">
                                 <i class="bi bi-record-circle"></i>
                             </div>
                         </div>
 
-                        <div class="col">
+                        <div class="col-md-4">
                             <h3 class="fw-bold mb-1">@item.Title</h3>
-
-                            <div class="d-flex align-items-center gap-3">
-                                @* לוגיקה חדשה: מציג אימייל רק למנהל. לקוח רגיל לא יראה כלום פה *@
+                            <div class="d-flex justify-content-center justify-content-md-start gap-2 align-items-center">
+                                <span class="text-muted small"><i class="bi bi-calendar3"></i> @item.DateAdded.ToShortDateString()</span>
                                 @if (User.IsInRole("Admin"))
                                 {
-                                    <span class="customer-badge">
-                                        <i class="bi bi-person-circle me-1"></i> @item.Customer?.Email
-                                    </span>
+                                    <span class="customer-badge">@item.Customer?.Email</span>
                                 }
-
-                                <span class="date-text">
-                                    <i class="bi bi-calendar3 me-1"></i> @item.DateAdded.ToShortDateString()
-                                </span>
                             </div>
                         </div>
 
-                        <div class="col-md-auto text-center my-3 my-md-0">
-                            <div class="text-muted small mb-1 text-uppercase fw-bold">Total Value</div>
+                        <div class="col-md-3 my-3 my-md-0">
+                            <div class="text-muted small text-uppercase fw-bold mb-1">Total Value</div>
                             <div class="price-badge">
                                 ₪@total.ToString("N2")
                             </div>
                         </div>
 
-                        <div class="col-md-auto d-flex flex-md-column gap-2">
-                            <a asp-action="Details" asp-route-id="@item.PlaylistSongID" class="btn btn-outline-primary btn-sm rounded-pill">
-                                <i class="bi bi-info-circle me-1"></i> View Details
+                        <div class="col-md-4 d-flex justify-content-center justify-content-md-end gap-2">
+                            <a asp-action="Details" asp-route-id="@item.PlaylistSongID" class="btn btn-primary rounded-pill px-3">
+                                <i class="bi bi-eye"></i> View
                             </a>
-                            <div class="d-flex gap-2">
-                                <a asp-action="Edit" asp-route-id="@item.PlaylistSongID" class="btn btn-outline-secondary btn-sm rounded-pill flex-grow-1">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@item.PlaylistSongID" class="btn btn-outline-danger btn-sm rounded-pill flex-grow-1">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </div>
+                            <a asp-action="Edit" asp-route-id="@item.PlaylistSongID" class="btn btn-outline-secondary rounded-pill">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.PlaylistSongID" class="btn btn-outline-danger rounded-pill">
+                                <i class="bi bi-trash"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
