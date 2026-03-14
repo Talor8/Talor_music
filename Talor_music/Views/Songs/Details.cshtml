@@ -2,6 +2,11 @@
 
 @{
     ViewData["Title"] = "Song Details - " + Model.Title;
+
+    // חישוב ממוצע הדירוגים
+    var avgRating = Model.Reviews != null && Model.Reviews.Any()
+                    ? Model.Reviews.Average(r => r.Rating)
+                    : 0;
 }
 
 @* חיבור לאייקונים ופונטים *@
@@ -41,7 +46,6 @@
         align-items: center;
         justify-content: center;
         margin-left: 15px;
-        @* שינוי לצד שמאל בגלל העברית *@
         color: #1db954;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
@@ -58,11 +62,26 @@
         font-weight: bold;
         transition: 0.3s;
     }
+
+    /* עיצוב נוסף לביקורות */
+    .review-card {
+        background: #ffffff;
+        border-radius: 20px;
+        border-right: 5px solid #1db954;
+        transition: 0.2s;
+    }
+
+        .review-card:hover {
+            transform: scale(1.01);
+        }
+
+    .star-rating {
+        color: #ffc107;
+    }
 </style>
 
 <div class="container mt-5 text-end" dir="rtl">
-    @* הוספת כיוון עברית *@
-    <div class="card glass-card shadow border-0 p-4">
+    <div class="card glass-card shadow border-0 p-4 mb-4">
         <div class="row align-items-center">
 
             @* צד ימין: תמונת השיר *@
@@ -82,11 +101,25 @@
 
             @* צד שמאל: פרטי השיר *@
             <div class="col-md-8">
-                <h1 class="fw-bold display-4 mb-0">@Model.Title</h1>
-                <h4 class="text-primary mb-4">@Model.Artist?.Name</h4>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h1 class="fw-bold display-4 mb-0">@Model.Title</h1>
+                        <h4 class="text-primary mb-4">@Model.Artist?.Name</h4>
+                    </div>
+                    @* הצגת ממוצע כוכבים *@
+                    <div class="text-center bg-light p-3 rounded-4 shadow-sm">
+                        <div class="star-rating mb-1">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="bi @(i <= Math.Round(avgRating) ? "bi-star-fill" : "bi-star")" style="font-size: 1.4rem;"></i>
+                            }
+                        </div>
+                        <span class="fw-bold fs-5">@avgRating.ToString("0.0")</span>
+                        <small class="text-muted d-block">דירוג קהל</small>
+                    </div>
+                </div>
 
                 <div class="row mb-4">
-                    @* ז'אנר *@
                     <div class="col-sm-6">
                         <div class="detail-item">
                             <div class="detail-icon">
@@ -99,7 +132,6 @@
                         </div>
                     </div>
 
-                    @* מחיר *@
                     <div class="col-sm-6">
                         <div class="detail-item">
                             <div class="detail-icon">
@@ -135,6 +167,77 @@
                     @if (User.IsInRole("Admin"))
                     {
                         <a asp-action="Edit" asp-route-id="@Model.SongID" class="btn btn-warning btn-custom">עריכת שיר</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* --- חלק הביקורות והתגובות --- *@
+    <div class="row mt-5">
+        @* הוספת ביקורת חדשה *@
+        <div class="col-md-5 mb-4">
+            <div class="card glass-card shadow-sm p-4 h-100">
+                <h4 class="fw-bold mb-4 text-success"><i class="bi bi-plus-circle me-2"></i>הוסף ביקורת</h4>
+                <form asp-action="AddReview" asp-controller="Songs" method="post">
+                    <input type="hidden" name="songId" value="@Model.SongID" />
+
+                    <div class="mb-4 text-start">
+                        <label class="form-label fw-bold">כמה כוכבים תיתן?</label>
+                        <select name="rating" class="form-select border-0 bg-light p-3 rounded-4">
+                            <option value="5">⭐⭐⭐⭐⭐ (מעולה!)</option>
+                            <option value="4">⭐⭐⭐⭐ (טוב מאוד)</option>
+                            <option value="3">⭐⭐⭐ (נחמד)</option>
+                            <option value="2">⭐⭐ (לא כל כך אהבתי)</option>
+                            <option value="1">⭐ (לא משהו)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4 text-start">
+                        <label class="form-label fw-bold">מה דעתך על השיר?</label>
+                        <textarea name="comment" class="form-control border-0 bg-light p-3 rounded-4" rows="3" placeholder="כתוב כאן..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-3 fw-bold shadow-sm" style="border-radius: 15px;">
+                        שלח ביקורת <i class="bi bi-send-fill ms-2"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        @* רשימת ביקורות קיימות *@
+        <div class="col-md-7">
+            <div class="card glass-card shadow-sm p-4 h-100">
+                <h4 class="fw-bold mb-4"><i class="bi bi-chat-left-quote me-2"></i>מה הגולשים אומרים</h4>
+
+                <div class="reviews-container" style="max-height: 500px; overflow-y: auto; padding-left: 10px;">
+                    @if (Model.Reviews != null && Model.Reviews.Any())
+                    {
+                        @foreach (var review in Model.Reviews.OrderByDescending(r => r.DatePosted))
+                        {
+                            <div class="review-card shadow-sm p-3 mb-3 border">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="star-rating">
+                                        @for (int i = 0; i < review.Rating; i++)
+                                        {
+                                            <i class="bi bi-star-fill"></i>
+                                        }
+                                    </span>
+                                    <strong class="text-dark">@review.Customer?.Email.Split('@')[0]</strong>
+                                </div>
+                                <p class="mb-1 text-secondary">@review.Comment</p>
+                                <div class="text-start">
+                                    <small class="text-muted" style="font-size: 0.75rem;">@review.DatePosted.ToString("dd/MM/yyyy")</small>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-chat-dots display-1 text-light"></i>
+                            <p class="text-muted mt-3">עוד אין ביקורות לשיר זה. תהיו הראשונים לדרג!</p>
+                        </div>
                     }
                 </div>
             </div>

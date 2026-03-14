@@ -38,11 +38,20 @@ namespace Talor_music.Controllers
         }
 
         [AllowAnonymous] // כולם יכולים לראות פרטים
+   
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-            var song = await _context.Song.Include(s => s.Artist).FirstOrDefaultAsync(m => m.SongID == id);
+
+            // הוספנו Include ל-Reviews וגם ל-Customer שכתב כל ביקורת
+            var song = await _context.Song
+                .Include(s => s.Artist)
+                .Include(s => s.Reviews)
+                    .ThenInclude(r => r.Customer)
+                .FirstOrDefaultAsync(m => m.SongID == id);
+
             if (song == null) return NotFound();
+
             return View(song);
         }
 
@@ -161,8 +170,36 @@ namespace Talor_music.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddReview(int songId, int rating, string comment)
+        {
+            // מוצאים את המשתמש המחובר לפי האימייל שלו
+            var customer = _context.Customer.FirstOrDefault(c => c.Email == User.Identity.Name);
 
+            if (customer == null)
+            {
+                return Unauthorized(); // אם המשתמש לא מחובר
+            }
+
+            var review = new Review
+            {
+                SongID = songId,
+                Rating = rating,
+                Comment = comment,
+                CustomerID = customer.Id,
+                DatePosted = DateTime.Now
+            };
+
+            _context.Review.Add(review);
+            await _context.SaveChangesAsync();
+
+            // חוזרים לדף ה-Details של השיר כדי לראות את התגובה החדשה
+            return RedirectToAction("Details", new { id = songId });
+        }
         private bool SongExists(int id) => _context.Song.Any(e => e.SongID == id);
-        //x
+        
+
+        
     }
 }

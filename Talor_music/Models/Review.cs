@@ -20,7 +20,11 @@ namespace Talor_music.Models
         public virtual Song? Song { get; set; }
 
         // קשר ללקוח (מי כתב את הביקורת)
-        public string? CustomerID { get; set; }
+        public int? CustomerID { get; set; }
         public virtual Customer? Customer { get; set; }
+
+
+
+        
     }
 }
