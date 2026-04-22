@@ -29,7 +29,7 @@
         border-radius: 20px;
         margin-bottom: 20px;
         transition: all 0.3s ease;
-        border-right: 8px solid #667eea; /* שיניתי לימין כי אנחנו בעברית */
+        border-right: 8px solid #667eea;
     }
 
         .playlist-card:hover {
@@ -111,7 +111,6 @@
 
             @foreach (var item in Model)
             {
-                @* חישוב הסכום - יעבוד רק אם הוספת Include בקונטרולר *@
                 var total = item.Songs?.Sum(s => s.Price) ?? 0;
 
                 <div class="card playlist-card shadow-sm p-3">
@@ -141,6 +140,10 @@
                         </div>
 
                         <div class="col-md-4 d-flex justify-content-center justify-content-md-end gap-2">
+                            <a asp-controller="Checkout" asp-action="Index" asp-route-playlistId="@item.PlaylistSongID" class="btn btn-success rounded-pill px-3">
+                                <i class="bi bi-cart-fill"></i> קנה פלייליסט
+                            </a>
+
                             <a asp-action="Details" asp-route-id="@item.PlaylistSongID" class="btn btn-primary rounded-pill px-3">
                                 <i class="bi bi-eye"></i> View
                             </a>

@@ -21,5 +21,7 @@ namespace Talor_music.Data
         public DbSet<Talor_music.Models.Customer> Customer { get; set; } = default!;
         public DbSet<Talor_music.Models.PlayListSong> PlayListSong { get; set; } = default!;
         public DbSet<Talor_music.Models.Review> Review { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
     }
 }
