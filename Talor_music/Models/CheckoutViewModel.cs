@@ -12,8 +12,8 @@ namespace Talor_music.Models;
         public string CardNumber { get; set; }
 
         [Required(ErrorMessage = "חובה להזין תוקף")]
-        public string ExpiryDate { get; set; }
+    public string ExpirationDate { get; set; }
 
-        [Required(ErrorMessage = "חובה להזין CVV")]
+    [Required(ErrorMessage = "חובה להזין CVV")]
         public string CVV { get; set; }
     }

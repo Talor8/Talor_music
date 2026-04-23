@@ -1,7 +1,8 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Talor_music.Data;
-using Microsoft.AspNetCore.Identity;
+using Talor_music.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,8 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => {
 })
 .AddRoles<IdentityRole>() // שורה חשובה מאוד!
 .AddEntityFrameworkStores<Talor_musicContext>();
+// חפשי את האזור שבו רשומים ה-Services והוסיפי:
+builder.Services.AddScoped<IPaymentService, MockPaymentService>();
 
 builder.Services.AddControllersWithViews();
 
@@ -68,5 +71,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapRazorPages(); // חייב להוסיף את זה בשביל דפי ההתחברות
+
 
 app.Run();
