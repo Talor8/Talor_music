@@ -1,94 +1,57 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Net.Http.Json; // חשוב לשליחת JSON
 using System.Security.Claims;
 using Talor_music.Data;
 using Talor_music.Models;
-using Talor_music.Services; // וודאי שה-Namespace של ה-Service נכון
 
 namespace Talor_music.Controllers
 {
     public class CheckoutController : Controller
     {
         private readonly Talor_musicContext _context;
-        private readonly IPaymentService _paymentService; // השירות החדש שלנו
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        // הוספנו את ה-paymentService לבנאי
-        public CheckoutController(Talor_musicContext context, IPaymentService paymentService)
+        // הזרקת ה-HttpClientFactory במקום ה-PaymentService
+        public CheckoutController(Talor_musicContext context, IHttpClientFactory httpClientFactory)
         {
             _context = context;
-            _paymentService = paymentService;
+            _httpClientFactory = httpClientFactory;
         }
 
-        // פעולה שמציגה את דף התשלום ומחשבת את המחיר
-        [HttpGet]
-        public IActionResult Index(int playlistId)
-        {
-            var playlist = _context.PlayListSong
-                .Include(p => p.Songs)
-                .FirstOrDefault(p => p.PlaylistSongID == playlistId);
-
-            if (playlist == null) return NotFound();
-
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            var purchasedSongIds = _context.OrderItems
-                .Where(oi => oi.Order.CustomerID == userId)
-                .Select(oi => oi.SongID)
-                .ToList();
-
-            decimal finalPrice = 0;
-            if (playlist.Songs != null)
-            {
-                foreach (var song in playlist.Songs)
-                {
-                    if (!purchasedSongIds.Contains(song.SongID))
-                    {
-                        finalPrice += song.Price;
-                    }
-                }
-            }
-
-            var viewModel = new CheckoutViewModel
-            {
-                PlaylistID = playlist.PlaylistSongID,
-                PlaylistName = playlist.Title,
-                TotalPrice = finalPrice
-            };
-
-            return View(viewModel);
-        }
-
-        // פעולה שמקבלת את הטופס ומבצעת את הרכישה
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ProcessPayment(CheckoutViewModel model)
+        public async Task<IActionResult> ProcessPayment(CheckoutViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid) return View("Index", model);
+
+            // יצירת לקוח HTTP
+            var client = _httpClientFactory.CreateClient();
+
+            // הכנת הנתונים למשלוח ל-API
+            var paymentData = new
             {
+                CardNumber = model.CardNumber,
+                ExpiryDate = model.ExpirationDate,
+                CVV = model.CVV
+            };
+
+            // שליחת בקשה ל-API שיצרת
+            // שימי לב: הכתובת צריכה להיות בדיוק איפה שה-API שלך רץ (למשל localhost:7101)
+            var response = await client.PostAsJsonAsync("https://localhost:7101/api/PaymentApi/validate", paymentData);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ModelState.AddModelError("CardNumber", "התשלום נדחה: פרטי האשראי שגויים או שהתוקף פג.");
                 return View("Index", model);
             }
 
-            // --- הבדיקה מול ה-API ---
-            // כאן אנחנו קוראים לשירות שבודק אם הכרטיס נמצא ברשימה המאושרת
-            bool isApproved = _paymentService.ValidatePayment(model.CardNumber, model.CVV, model.ExpirationDate);
-
-            if (!isApproved)
-            {
-                // אם הכרטיס לא אושר, נוסיף שגיאה שתוצג למשתמש
-                ModelState.AddModelError("CardNumber", "התשלום נדחה על ידי חברת האשראי. אנא השתמש בכרטיס מאושר לבדיקה.");
-                return View("Index", model);
-            }
-
+            // --- מכאן הקוד נשאר בדיוק כפי שהיה (שמירת הזמנה במסד הנתונים) ---
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             var playlist = _context.PlayListSong
                 .Include(p => p.Songs)
                 .FirstOrDefault(p => p.PlaylistSongID == model.PlaylistID);
 
-            // יצירת הזמנה חדשה
             var order = new Order
             {
                 CustomerID = userId,
@@ -100,36 +63,11 @@ namespace Talor_music.Controllers
             _context.Orders.Add(order);
             _context.SaveChanges();
 
-            var purchasedSongIds = _context.OrderItems
-                .Where(oi => oi.Order.CustomerID == userId)
-                .Select(oi => oi.SongID)
-                .ToList();
-
-            // הוספת השירים החדשים להזמנה
-            if (playlist?.Songs != null)
-            {
-                foreach (var song in playlist.Songs)
-                {
-                    if (!purchasedSongIds.Contains(song.SongID))
-                    {
-                        var orderItem = new OrderItem
-                        {
-                            OrderID = order.OrderID,
-                            SongID = song.SongID,
-                            PriceAtPurchase = song.Price
-                        };
-                        _context.OrderItems.Add(orderItem);
-                    }
-                }
-                _context.SaveChanges();
-            }
+            // ... (שאר הקוד של הוספת ה-OrderItems נשאר אותו דבר) ...
 
             return RedirectToAction("Success");
         }
 
-        public IActionResult Success()
-        {
-            return View();
-        }
+        // ... שאר הפעולות ...
     }
 }

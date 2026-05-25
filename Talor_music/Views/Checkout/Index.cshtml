@@ -14,12 +14,10 @@
     </div>
 
     <div class="row">
-        <div class="col-md-6 border p-4 shadow-sm bg-light">
+        <div class="col-md-7 border p-4 shadow-sm bg-light">
             <form asp-action="ProcessPayment" asp-controller="Checkout" method="post">
-                @* הודעות שגיאה כלליות (כמו "התשלום נדחה") יופיעו כאן *@
                 <div asp-validation-summary="ModelOnly" class="text-danger fw-bold mb-3"></div>
 
-                @* שדות חבויים כדי שהמידע לא יאבד בשליחה *@
                 <input type="hidden" asp-for="PlaylistID" />
                 <input type="hidden" asp-for="TotalPrice" />
                 <input type="hidden" asp-for="PlaylistName" />
@@ -33,7 +31,6 @@
                 <div class="row">
                     <div class="col-md-6 form-group mb-3">
                         <label class="form-label">תוקף (MM/YY):</label>
-                        @* תיקון: שיניתי מ-ExpiryDate ל-ExpirationDate כדי שיתאים לבקר *@
                         <input asp-for="ExpirationDate" class="form-control" placeholder="12/26" />
                         <span asp-validation-for="ExpirationDate" class="text-danger"></span>
                     </div>
@@ -47,19 +44,18 @@
 
                 <hr />
                 <button type="submit" class="btn btn-success btn-lg w-100">סיים רכישה ✅</button>
-
                 <a href="javascript:history.back()" class="btn btn-link w-100 mt-2">ביטול וחזרה לחנות</a>
-
             </form>
+        </div>
 
         <div class="col-md-4 ms-md-4 mt-4 mt-md-0">
             <div class="card card-body bg-warning-subtle">
                 <h5>💳 כרטיסים לבדיקה (API):</h5>
                 <ul class="small">
-                    <li><strong>מספר:</strong> 1111222233334444<br><strong>תוקף:</strong> 01/30 | <strong>CVV:</strong> 999</li>
-                    <li><strong>מספר:</strong> 4580123456789012<br><strong>תוקף:</strong> 12/28 | <strong>CVV:</strong> 123</li>
+                    <li><strong>מספר:</strong> 1234567812345678<br><strong>CVV:</strong> 123</li>
+                    <li><strong>מספר:</strong> 4242424242424242<br><strong>CVV:</strong> 123</li>
                 </ul>
-                <p class="small text-muted mt-2">כל כרטיס אחר יידחה אוטומטית על ידי המערכת.</p>
+                <p class="small text-muted mt-2">כל כרטיס אחר יידחה אוטומטית ע"י המערכת.</p>
             </div>
         </div>
     </div>

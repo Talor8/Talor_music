@@ -10,6 +10,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<Talor_musicContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Talor_musicContext") ?? throw new InvalidOperationException("Connection string 'Talor_musicContext' not found.")));
 
+//builder.Services.AddHttpClient<CreditCardServics >(client =>
+//{
+//    // Make sure to match the port of your running WeatherService API
+//    client.BaseAddress = new Uri("http://localhost:5121/");
+//});
+builder.Services.AddHttpClient();
+
 // 2. הגדרת Identity עם תמיכה בתפקידים (Roles)
 builder.Services.AddDefaultIdentity<IdentityUser>(options => {
     options.SignIn.RequireConfirmedAccount = false; // שיניתי ל-false כדי שתוכלי להתחבר בלי לאשר אימייל בבדיקות
