@@ -25,30 +25,34 @@ namespace Talor_music.Controllers
         [HttpGet]
         public IActionResult Index(int playlistId)
         {
+            // תיקון: PlayListSong עם L גדולה בדיוק כמו ב-Context שלך
             var playlist = _context.PlayListSong
                 .Include(p => p.Songs)
                 .FirstOrDefault(p => p.PlaylistSongID == playlistId);
 
             if (playlist == null) return NotFound();
 
-            // התיקון שלנו: חיפוש חכם של המשתמש וההזמנות שלו
+            // מציאת המזהה של הלקוח המחובר כרגע
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var userEmail = User.Identity?.Name;
-            var customer = _context.Customer.FirstOrDefault(c => c.Email == userEmail);
-            var customerIdStr = customer?.Id.ToString();
 
+            // שליפת כל מספרי השירים שהלקוח הזה כבר קנה בעבר
             var purchasedSongIds = _context.OrderItems
-                .Where(oi => oi.Order.CustomerID == userId ||
-                             oi.Order.CustomerID == userEmail ||
-                             oi.Order.CustomerID == customerIdStr)
+                .Where(oi => oi.Order.CustomerID == userId)
                 .Select(oi => oi.SongID)
-                .Distinct()
                 .ToList();
 
-            // חישוב מחיר רק לשירים שעדיין לא נקנו
-            decimal finalPrice = playlist.Songs
-                .Where(s => !purchasedSongIds.Contains(s.SongID))
-                .Sum(s => s.Price);
+            // חישוב המחיר הסופי: סוכמים רק את השירים שהלקוח עדיין לא קנה
+            decimal finalPrice = 0;
+            if (playlist.Songs != null)
+            {
+                foreach (var song in playlist.Songs)
+                {
+                    if (!purchasedSongIds.Contains(song.SongID))
+                    {
+                        finalPrice += song.Price;
+                    }
+                }
+            }
 
             var viewModel = new CheckoutViewModel
             {
