@@ -5,11 +5,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization; // חובה להוספה
 using Talor_music.Data;
 using Talor_music.Models;
+using System.Security.Claims;
 
 namespace Talor_music.Controllers
 {
+    // ניתן להוסיף [Authorize] גם כאן אם רוצים שכל הדף ידרוש התחברות
     public class PlayListSongsController : Controller
     {
         private readonly Talor_musicContext _context;
@@ -19,7 +22,7 @@ namespace Talor_music.Controllers
             _context = context;
         }
 
-        // דף הבית של הפלייליסטים
+        [Authorize] // דורש התחברות לצפייה בפלייליסטים
         public async Task<IActionResult> Index()
         {
             var userEmail = User.Identity?.Name;
@@ -38,8 +41,7 @@ namespace Talor_music.Controllers
             return View(await query.ToListAsync());
         }
 
-        // זה הכפתור מהחנות (הירוק) - מחזיר רשימה של פלייליסטים לבחירה
-        // דף בחירת פלייליסט כשלוחצים על Add בחנות (הכפתור הירוק)
+        [Authorize] // דורש התחברות כדי להוסיף שיר
         public async Task<IActionResult> AddSongToPlayList(int? songId)
         {
             if (songId == null) return NotFound();
@@ -53,12 +55,11 @@ namespace Talor_music.Controllers
             }
 
             ViewBag.SongId = songId;
-            // כאן התיקון: אנחנו שולחים רשימה (List)
             return View(await query.ToListAsync());
         }
 
-        // הפעולה שמבצעת את ההוספה בפועל (משותפת לחנות ולדף ה-Details)
         [HttpPost]
+        [Authorize] // דורש התחברות לביצוע ההוספה בפועל
         public async Task<IActionResult> AddSongToListAction(int playListId, int songId)
         {
             var playlist = await _context.PlayListSong.Include(p => p.Songs)
@@ -73,35 +74,52 @@ namespace Talor_music.Controllers
                     await _context.SaveChangesAsync();
                 }
             }
-            // אחרי ההוספה חוזרים לדף ה-Details של הפלייליסט אליו הוספנו
             return RedirectToAction("Details", new { id = playListId });
         }
 
-        // דף הפרטים (הדף של רונית עם ה-No Results Found)
+        [Authorize] // דורש התחברות לצפייה בפרטי פלייליסט
+        [Authorize]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
 
             var playListSong = await _context.PlayListSong
-                .Include(p => p.Songs).ThenInclude(s => s.Artist)
+                .Include(p => p.Songs)
                 .Include(p => p.Customer)
                 .FirstOrDefaultAsync(m => m.PlaylistSongID == id);
 
             if (playListSong == null) return NotFound();
 
-            // התיקון הקדוש לחיפוש:
             ViewBag.AllSongs = await _context.Song.ToListAsync();
 
-            return View(playListSong); // שולח אובייקט בודד
+            // התיקון המנצח: מחפשים את ההזמנות של המשתמש בכל דרך אפשרית 
+            // (למקרה שנשמר כ-ID של זהות, כאימייל, או כ-ID של טבלת לקוחות)
+            var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userEmail = User.Identity?.Name;
+            var customer = await _context.Customer.FirstOrDefaultAsync(c => c.Email == userEmail);
+            var customerIdStr = customer?.Id.ToString();
+
+            var purchasedSongIds = await _context.OrderItems
+                .Where(oi => oi.Order.CustomerID == userId ||
+                             oi.Order.CustomerID == userEmail ||
+                             oi.Order.CustomerID == customerIdStr)
+                .Select(oi => oi.SongID)
+                .Distinct()
+                .ToListAsync();
+
+            ViewBag.PurchasedSongIds = purchasedSongIds; // מעביר את רשימת השירים שנקנו ל-View
+
+            return View(playListSong);
         }
 
-        // --- פונקציות עזר סטנדרטיות ---
+        [Authorize] // דורש התחברות ליצירת פלייליסט
         public IActionResult Create()
         {
             return View();
         }
 
         [HttpPost]
+        [Authorize] // דורש התחברות ליצירת פלייליסט
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("PlaylistSongID,Title,DateAdded,CustomerID")] PlayListSong playListSong)
         {
@@ -121,6 +139,8 @@ namespace Talor_music.Controllers
             return View(playListSong);
         }
 
+        // שאר הפונקציות (Delete, Edit) - מומלץ להוסיף להן גם [Authorize]
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -129,6 +149,7 @@ namespace Talor_music.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -137,36 +158,30 @@ namespace Talor_music.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-        // 1. דף שמציג את הטופס לעריכת השם
+
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-
             var playlist = await _context.PlayListSong.FindAsync(id);
             if (playlist == null) return NotFound();
-
             return View(playlist);
         }
 
-        // 2. הפעולה ששומרת את השם החדש בדאטה-בייס
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("PlaylistSongID,Title,DateAdded,CustomerID")] PlayListSong playListSong)
         {
             if (id != playListSong.PlaylistSongID) return NotFound();
-
-            // התיקון הקריטי: אנחנו מסירים את הבדיקה של הלקוח כי אנחנו לא משנים אותו בעריכה
             ModelState.Remove("Customer");
             ModelState.Remove("Songs");
-
             if (ModelState.IsValid)
             {
                 try
                 {
                     _context.Update(playListSong);
                     await _context.SaveChangesAsync();
-
-                    // אחרי השמירה - חוזרים לדף הפרטים לראות את השם החדש
                     return RedirectToAction("Details", new { id = playListSong.PlaylistSongID });
                 }
                 catch (DbUpdateConcurrencyException)
@@ -175,9 +190,28 @@ namespace Talor_music.Controllers
                     else throw;
                 }
             }
-
-            // אם הגענו לכאן סימן שיש שגיאה - נחזיר את המשתמש לדף עם השגיאות
             return View(playListSong);
+        }
+        [HttpPost]
+        public IActionResult RemoveSong(int playlistId, int songId)
+        {
+            // מוצאים את הפלייליסט עם השירים שלו
+            var playlist = _context.PlayListSong
+                .Include(p => p.Songs)
+                .FirstOrDefault(p => p.PlaylistSongID == playlistId);
+
+            if (playlist == null) return NotFound();
+
+            // מוצאים את השיר בתוך הפלייליסט
+            var songToRemove = playlist.Songs.FirstOrDefault(s => s.SongID == songId);
+
+            if (songToRemove != null)
+            {
+                playlist.Songs.Remove(songToRemove); // מסירים את השיר מהרשימה
+                _context.SaveChanges(); // שומרים את השינויים בבסיס הנתונים
+            }
+
+            return RedirectToAction("Details", new { id = playlistId });
         }
     }
 }

@@ -1,92 +1,94 @@
 ﻿@model IEnumerable<Talor_music.Models.Artist>
 
 @{
-    ViewData["Title"] = "האמנים שלנו";
+    ViewData["Title"] = "נבחרת האמנים";
 }
 
-@* חיבור לספריות חיצוניות לעיצוב *@
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Special+Elite&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&display=swap" rel="stylesheet">
 
 <style>
     body {
-        background-color: #f0f2f5;
-        font-family: 'Assistant', sans-serif;
+        background-color: #f4ece0;
+        background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png');
+        font-family: 'Special Elite', cursive;
+        color: #4a3728;
     }
 
     .page-header {
-        background: linear-gradient(135deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%);
-        color: white;
-        padding: 40px 0;
-        border-radius: 0 0 30px 30px;
+        background: #e8dcc8;
+        border-bottom: 3px solid #a68966;
+        padding: 60px 0;
         margin-bottom: 40px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        text-align: center;
     }
 
+        .page-header h1 {
+            font-family: 'Playfair Display', serif;
+            color: #2c2016;
+        }
+
     .artist-card {
-        background: white;
-        border: none;
-        border-radius: 20px;
-        transition: all 0.3s ease;
-        overflow: hidden;
-        border-right: 6px solid #784BA0; /* פס צבעוני בצד */
+        background: #fdfaf6;
+        border: 1px solid #c5b396 !important;
+        border-radius: 0 !important;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.08);
+        transition: 0.3s;
     }
 
         .artist-card:hover {
+            background: #f4ece0;
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border-right-color: #FF3CAC;
-        }
-
-    .btn-action {
-        border-radius: 10px;
-        padding: 8px 15px;
-        font-weight: 600;
-        transition: all 0.2s;
-        font-size: 0.9rem;
-    }
-
-    .btn-create {
-        background: #FF3CAC;
-        color: white;
-        border: none;
-        border-radius: 50px;
-        padding: 12px 30px;
-        font-weight: bold;
-        box-shadow: 0 4px 15px rgba(255, 60, 172, 0.3);
-        text-decoration: none;
-        display: inline-block;
-    }
-
-        .btn-create:hover {
-            background: #e6369b;
-            color: white;
-            transform: scale(1.05);
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
         }
 
     .artist-icon {
-        background: #f8f9fa;
-        width: 60px;
-        height: 60px;
+        background: #d3c4a8;
+        width: 70px;
+        height: 70px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 15px;
-        color: #784BA0;
-        font-size: 1.5rem;
+        color: #4a3728;
+        border: 1px solid #a68966;
+        font-size: 1.8rem;
+    }
+
+    .btn-action {
+        border-radius: 0;
+        padding: 6px 14px;
+        font-size: 0.85rem;
+        border: 1px solid #4a3728;
+        color: #4a3728;
+        background: transparent;
+        transition: 0.2s;
+    }
+
+        .btn-action:hover {
+            background: #a68966;
+            color: white;
+            border-color: #a68966;
+        }
+
+    .btn-create {
+        background: #4a3728;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        text-decoration: none;
+        letter-spacing: 1px;
     }
 </style>
 
-<div class="page-header text-center">
+<div class="page-header">
     <div class="container">
         <h1 class="display-4 fw-bold">נבחרת האמנים</h1>
-        <p class="lead">גלו את היוצרים שמאחורי המוזיקה שאתם אוהבים</p>
+        <p>--- המוחות שמאחורי הצלילים ---</p>
 
-        @* רק מנהל רואה את כפתור היצירה *@
         @if (User.IsInRole("Admin"))
         {
             <a asp-action="Create" class="btn btn-create mt-3">
-                <i class="bi bi-person-plus-fill me-2"></i>הוספת אמן חדש
+                <i class="bi bi-plus-lg"></i> הוספת אמן חדש
             </a>
         }
     </div>
@@ -97,33 +99,31 @@
         @foreach (var item in Model)
         {
             <div class="col-md-6 col-lg-4">
-                <div class="card artist-card h-100 shadow-sm p-3">
+                <div class="card artist-card h-100 p-3">
                     <div class="d-flex align-items-center">
-                        <div class="artist-icon me-3 shadow-sm">
-                            <i class="bi bi-music-note-beamed"></i>
+                        <div class="artist-icon me-3">
+                            <i class="bi bi-mic-fill"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h4 class="fw-bold mb-1 text-dark">@Html.DisplayFor(modelItem => item.Name)</h4>
-                            <span class="text-muted small">אמן בחנות</span>
+                            <h4 class="mb-1" style="font-family: 'Playfair Display', serif;">@Html.DisplayFor(modelItem => item.Name)</h4>
+                            <p class="small text-muted mb-0">אמן בארכיון</p>
                         </div>
                     </div>
 
-                    <hr class="my-3 opacity-25">
+                    <hr class="my-3" style="border-top: 1px solid #a68966;">
 
                     <div class="d-flex justify-content-center gap-2">
-                        @* כולם יכולים לראות פרטים *@
-                        <a asp-action="Details" asp-route-id="@item.ArtistID" class="btn btn-action btn-outline-info">
-                            <i class="bi bi-eye me-1"></i>פרטים
+                        <a asp-action="Details" asp-route-id="@item.ArtistID" class="btn btn-action">
+                            <i class="bi bi-info-circle"></i> פרטים
                         </a>
 
-                        @* רק מנהל רואה עריכה ומחיקה *@
                         @if (User.IsInRole("Admin"))
                         {
-                            <a asp-action="Edit" asp-route-id="@item.ArtistID" class="btn btn-action btn-outline-primary">
-                                <i class="bi bi-pencil-square me-1"></i>עריכה
+                            <a asp-action="Edit" asp-route-id="@item.ArtistID" class="btn btn-action">
+                                <i class="bi bi-pencil"></i> עריכה
                             </a>
-                            <a asp-action="Delete" asp-route-id="@item.ArtistID" class="btn btn-action btn-outline-danger">
-                                <i class="bi bi-trash me-1"></i>מחיקה
+                            <a asp-action="Delete" asp-route-id="@item.ArtistID" class="btn btn-action text-danger">
+                                <i class="bi bi-trash"></i> מחיקה
                             </a>
                         }
                     </div>

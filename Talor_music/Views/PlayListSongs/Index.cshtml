@@ -90,9 +90,12 @@
         <h1 class="display-4 fw-bold">My Music Collections</h1>
         <p class="lead opacity-75">ניהול הפלייליסטים האישיים שלך וסיכום עלויות</p>
         <div class="mt-4">
-            <a asp-action="Create" class="btn-create-playlist">
-                <i class="bi bi-plus-circle-fill me-2"></i>Create New Playlist
-            </a>
+            @if (!User.IsInRole("Admin"))
+            {
+                <a asp-action="Create" class="btn-create-playlist">
+                    <i class="bi bi-plus-circle-fill me-2"></i>Create New Playlist
+                </a>
+            }
         </div>
     </div>
 </div>
@@ -140,19 +143,29 @@
                         </div>
 
                         <div class="col-md-4 d-flex justify-content-center justify-content-md-end gap-2">
-                            <a asp-controller="Checkout" asp-action="Index" asp-route-playlistId="@item.PlaylistSongID" class="btn btn-success rounded-pill px-3">
-                                <i class="bi bi-cart-fill"></i> קנה פלייליסט
-                            </a>
+                            @if (!User.IsInRole("Admin"))
+                            {
+                                <form asp-controller="Checkout" asp-action="CreateCheckoutSession" method="post">
+                                    <input type="hidden" name="playlistId" value="@item.PlaylistSongID" />
+                                    <button type="submit" class="btn btn-success rounded-pill px-3">
+                                        <i class="bi bi-cart-fill"></i> קנה פלייליסט
+                                    </button>
+                                </form>
+                            }
 
                             <a asp-action="Details" asp-route-id="@item.PlaylistSongID" class="btn btn-primary rounded-pill px-3">
                                 <i class="bi bi-eye"></i> View
                             </a>
-                            <a asp-action="Edit" asp-route-id="@item.PlaylistSongID" class="btn btn-outline-secondary rounded-pill">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@item.PlaylistSongID" class="btn btn-outline-danger rounded-pill">
-                                <i class="bi bi-trash"></i>
-                            </a>
+
+                            @if (!User.IsInRole("Admin"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.PlaylistSongID" class="btn btn-outline-secondary rounded-pill">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.PlaylistSongID" class="btn btn-outline-danger rounded-pill">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            }
                         </div>
                     </div>
                 </div>

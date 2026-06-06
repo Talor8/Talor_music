@@ -20,9 +20,16 @@ namespace Talor_music.Controllers
         }
 
         // GET: Customers
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            return View(await _context.Customer.ToListAsync());
+            // במקום לשלוח _context.Users (שהם משתמשי Identity), 
+            // אנחנו שולחים את הטבלה שנקראת Customer שמוגדרת ב-DbContext שלך
+            var customers = _context.Customer.ToList();
+
+            // חישוב הכנסות בטוח (בדקי ששדה המחיר ב-Order נקרא TotalAmount)
+            ViewBag.TotalRevenue = _context.Orders.Any() ? _context.Orders.Sum(o => o.TotalAmount) : 0;
+
+            return View(customers); // עכשיו את שולחת רשימה של Customer בדיוק מה שה-View מצפה
         }
 
         // GET: Customers/Details/5

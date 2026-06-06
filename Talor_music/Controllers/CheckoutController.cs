@@ -1,54 +1,54 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
+using Stripe;
+using Stripe.Checkout;
 using System.Linq;
 using System.Security.Claims;
 using Talor_music.Data;
 using Talor_music.Models;
+using System.Collections.Generic;
 
 namespace Talor_music.Controllers
 {
     public class CheckoutController : Controller
     {
         private readonly Talor_musicContext _context;
+        private readonly IConfiguration _configuration;
 
-        public CheckoutController(Talor_musicContext context)
+        public CheckoutController(Talor_musicContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
-        // פעולה שמציגה את דף התשלום ומחשבת את המחיר
+        // פעולה שמציגה את עמוד התשלום
         [HttpGet]
         public IActionResult Index(int playlistId)
         {
-            // תיקון: PlayListSong עם L גדולה בדיוק כמו ב-Context שלך
             var playlist = _context.PlayListSong
                 .Include(p => p.Songs)
                 .FirstOrDefault(p => p.PlaylistSongID == playlistId);
 
             if (playlist == null) return NotFound();
 
-            // מציאת המזהה של הלקוח המחובר כרגע
+            // התיקון שלנו: חיפוש חכם של המשתמש וההזמנות שלו
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userEmail = User.Identity?.Name;
+            var customer = _context.Customer.FirstOrDefault(c => c.Email == userEmail);
+            var customerIdStr = customer?.Id.ToString();
 
-            // שליפת כל מספרי השירים שהלקוח הזה כבר קנה בעבר
             var purchasedSongIds = _context.OrderItems
-                .Where(oi => oi.Order.CustomerID == userId)
+                .Where(oi => oi.Order.CustomerID == userId ||
+                             oi.Order.CustomerID == userEmail ||
+                             oi.Order.CustomerID == customerIdStr)
                 .Select(oi => oi.SongID)
+                .Distinct()
                 .ToList();
 
-            // חישוב המחיר הסופי: סוכמים רק את השירים שהלקוח עדיין לא קנה
-            decimal finalPrice = 0;
-            if (playlist.Songs != null)
-            {
-                foreach (var song in playlist.Songs)
-                {
-                    if (!purchasedSongIds.Contains(song.SongID))
-                    {
-                        finalPrice += song.Price;
-                    }
-                }
-            }
+            // חישוב מחיר רק לשירים שעדיין לא נקנו
+            decimal finalPrice = playlist.Songs
+                .Where(s => !purchasedSongIds.Contains(s.SongID))
+                .Sum(s => s.Price);
 
             var viewModel = new CheckoutViewModel
             {
@@ -60,67 +60,77 @@ namespace Talor_music.Controllers
             return View(viewModel);
         }
 
-        // פעולה שמקבלת את הטופס שהלקוח שלח ומבצעת את הרכישה
+        // כאן הפונקציה ששולחת את המשתמש ל-Stripe
         [HttpPost]
-        public IActionResult ProcessPayment(CheckoutViewModel model)
+        public IActionResult CreateCheckoutSession(int playlistId)
         {
-            if (!ModelState.IsValid)
-            {
-                return View("Index", model); // אם חסרים פרטים, נחזיר אותו לטופס
-            }
+            StripeConfiguration.ApiKey = _configuration["Stripe:SecretKey"];
+            var domain = $"{Request.Scheme}://{Request.Host}";
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            // תיקון: PlayListSong עם L גדולה
             var playlist = _context.PlayListSong
                 .Include(p => p.Songs)
-                .FirstOrDefault(p => p.PlaylistSongID == model.PlaylistID);
+                .FirstOrDefault(p => p.PlaylistSongID == playlistId);
 
-            // יצירת הזמנה חדשה
-            var order = new Order
-            {
-                CustomerID = userId,
-                OrderDate = DateTime.Now,
-                TotalAmount = model.TotalPrice,
-                // לוקחים רק את 4 הספרות האחרונות מהכרטיס שהוקלד
-                CardLastFourDigits = model.CardNumber.Length >= 4 ? model.CardNumber.Substring(model.CardNumber.Length - 4) : "****"
-            };
+            if (playlist == null) return NotFound();
 
-            _context.Orders.Add(order);
-            _context.SaveChanges(); // שומרים כדי לקבל OrderID
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userEmail = User.Identity?.Name;
+            var customer = _context.Customer.FirstOrDefault(c => c.Email == userEmail);
+            var customerIdStr = customer?.Id.ToString();
 
-            // בדיקה שוב אילו שירים הוא כבר קנה (כדי לא לשמור אותם כ-OrderItem כפול)
+            // קיזוז שירים שנקנו בכל הזמנה של המשתמש
             var purchasedSongIds = _context.OrderItems
-                .Where(oi => oi.Order.CustomerID == userId)
+                .Where(oi => oi.Order.CustomerID == userId ||
+                             oi.Order.CustomerID == userEmail ||
+                             oi.Order.CustomerID == customerIdStr)
                 .Select(oi => oi.SongID)
+                .Distinct()
                 .ToList();
 
-            // הוספת השירים החדשים להזמנה
-            if (playlist?.Songs != null)
-            {
-                foreach (var song in playlist.Songs)
-                {
-                    if (!purchasedSongIds.Contains(song.SongID))
-                    {
-                        var orderItem = new OrderItem
-                        {
-                            OrderID = order.OrderID,
-                            SongID = song.SongID,
-                            PriceAtPurchase = song.Price
-                        };
-                        _context.OrderItems.Add(orderItem);
-                    }
-                }
-                _context.SaveChanges(); // שמירה סופית של השירים שנקנו
-            }
+            var songsToPayFor = playlist.Songs
+                .Where(s => !purchasedSongIds.Contains(s.SongID))
+                .ToList();
 
-            return RedirectToAction("Success");
+            decimal totalToPay = songsToPayFor.Sum(s => s.Price);
+
+            if (totalToPay <= 0) return RedirectToAction("Success", new { playlistId = playlistId });
+
+            var options = new SessionCreateOptions
+            {
+                PaymentMethodTypes = new List<string> { "card" },
+                LineItems = new List<SessionLineItemOptions>
+                {
+                    new SessionLineItemOptions
+                    {
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            UnitAmount = (long)(totalToPay * 100),
+                            Currency = "ils",
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = playlist.Title + " (קיזוז שירים שנקנו)",
+                            },
+                        },
+                        Quantity = 1,
+                    },
+                },
+                Mode = "payment",
+                SuccessUrl = domain + "/Checkout/Success?playlistId=" + playlistId,
+                CancelUrl = domain + "/PlayListSongs/Details/" + playlistId,
+            };
+
+            var service = new SessionService();
+            Session session = service.Create(options);
+
+            Response.Headers.Add("Location", session.Url);
+            return new StatusCodeResult(303);
         }
 
-        // דף אישור אחרי הקנייה
-        public IActionResult Success()
+        public IActionResult Success(int playlistId)
         {
             return View();
         }
     }
 }
+
+

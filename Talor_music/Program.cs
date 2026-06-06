@@ -21,8 +21,15 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => {
 .AddEntityFrameworkStores<Talor_musicContext>();
 
 builder.Services.AddControllersWithViews();
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    // זה מבטיח שאם משתמש מנסה להיכנס לאזור סגור, הוא יועבר לדף ההתחברות הנכון
+    options.LoginPath = "/Identity/Account/Login";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+});
 
 var app = builder.Build();
+
 
 // 3. יצירת תפקיד מנהל ומשתמש מנהל ראשון (רץ כשהאפליקציה עולה)
 using (var scope = app.Services.CreateScope())
