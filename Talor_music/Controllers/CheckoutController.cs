@@ -84,9 +84,11 @@ namespace Talor_music.Controllers
 
             // קיזוז שירים שנקנו בכל הזמנה של המשתמש
             var purchasedSongIds = _context.OrderItems
-                .Where(oi => oi.Order.CustomerID == userId ||
+                .Include(oi => oi.Order) // <--- זה התיקון הקריטי ביותר
+                .Where(oi => oi.Order != null && ( // הגנה מפני null
+                             oi.Order.CustomerID == userId ||
                              oi.Order.CustomerID == userEmail ||
-                             oi.Order.CustomerID == customerIdStr)
+                             oi.Order.CustomerID == customerIdStr))
                 .Select(oi => oi.SongID)
                 .Distinct()
                 .ToList();
@@ -132,9 +134,40 @@ namespace Talor_music.Controllers
 
         public IActionResult Success(int playlistId)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // 1. יצירת הזמנה חדשה בטבלת Orders
+            // בתוך הפונקציה Success
+            var order = new Order
+            {
+                CustomerID = userId,
+                OrderDate = DateTime.Now,
+                // הנה התיקון: את חייבת להוסיף את השדה הזה
+                CardLastFourDigits = "0000" // תכניסי כאן ערך זמני או את ה-4 ספרות שחזרו מהתשלום
+            };
+            _context.Orders.Add(order);
+            _context.SaveChanges();
+
+            // 2. הוספת השירים מהפלייליסט לטבלת OrderItems
+            var playlist = _context.PlayListSong.Include(p => p.Songs)
+                                  .FirstOrDefault(p => p.PlaylistSongID == playlistId);
+
+            foreach (var song in playlist.Songs)
+            {
+                _context.OrderItems.Add(new OrderItem
+                {
+                    OrderID = order.OrderID,
+                    SongID = song.SongID,
+                    PriceAtPurchase = song.Price
+                });
+            }
+            _context.SaveChanges();
+
             return View();
         }
     }
 }
+
+
 
 
