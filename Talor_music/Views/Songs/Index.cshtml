@@ -139,9 +139,12 @@
                     }
                 </div>
 
-                <div class="me-3">
-                    <a asp-controller="PlayListSongs" asp-action="AddSongToPlayList" asp-route-songId="@item.SongID" class="btn btn-add-playlist">הוסף</a>
-                </div>
+                @if (!User.IsInRole("Admin"))
+                {
+                    <div class="me-3">
+                        <a asp-controller="PlayListSongs" asp-action="AddSongToPlayList" asp-route-songId="@item.SongID" class="btn btn-add-playlist">הוסף</a>
+                    </div>
+                }
             </div>
         </div>
     }
