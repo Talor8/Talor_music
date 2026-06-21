@@ -11,13 +11,13 @@ builder.Services.AddDbContext<Talor_musicContext>(options =>
 
 // 2. הגדרת Identity עם תמיכה בתפקידים (Roles)
 builder.Services.AddDefaultIdentity<IdentityUser>(options => {
-    options.SignIn.RequireConfirmedAccount = false; // שיניתי ל-false כדי שתוכלי להתחבר בלי לאשר אימייל בבדיקות
+    options.SignIn.RequireConfirmedAccount = false;  
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 6;
     options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
 })
-.AddRoles<IdentityRole>() // שורה חשובה מאוד!
+.AddRoles<IdentityRole>() 
 .AddEntityFrameworkStores<Talor_musicContext>();
 
 builder.Services.AddControllersWithViews();
@@ -43,14 +43,14 @@ using (var scope = app.Services.CreateScope())
         await roleManager.CreateAsync(new IdentityRole("Admin"));
     }
 
-    // יצירת משתמש מנהל (תשני כאן לאימייל שלך)
+    // יצירת משתמש מנהל 
     var adminEmail = "admin@music.com";
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
     if (adminUser == null)
     {
         var user = new IdentityUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
-        await userManager.CreateAsync(user, "Admin123!"); // זו הסיסמה שלך
+        await userManager.CreateAsync(user, "Admin123!"); // זו הסיסמה 
         await userManager.AddToRoleAsync(user, "Admin");
     }
 }

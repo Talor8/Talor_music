@@ -26,14 +26,13 @@ namespace Talor_music.Controllers
             // אנחנו שולחים את הטבלה שנקראת Customer שמוגדרת ב-DbContext שלך
             var customers = _context.Customer.ToList();
 
-            // חישוב הכנסות בטוח (בדקי ששדה המחיר ב-Order נקרא TotalAmount)
+            // חישוב הכנסות בטוח
             ViewBag.TotalRevenue = _context.Orders.Any() ? _context.Orders.Sum(o => o.TotalAmount) : 0;
 
-            return View(customers); // עכשיו את שולחת רשימה של Customer בדיוק מה שה-View מצפה
+            return View(customers); 
         }
 
-        // GET: Customers/Details/5
-        // GET: Customers/Details/5
+    
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -42,7 +41,7 @@ namespace Talor_music.Controllers
             }
 
             var customer = await _context.Customer
-                .Include(c => c.Playlists) // השורה הזו טוענת את הפלייליסטים של הלקוח!
+                .Include(c => c.Playlists) // השורה הזו טוענת את הפלייליסטים של הלקוח
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (customer == null)
@@ -53,15 +52,13 @@ namespace Talor_music.Controllers
             return View(customer);
         }
 
-        // GET: Customers/Create
+        
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Customers/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Customer customer)
@@ -75,58 +72,11 @@ namespace Talor_music.Controllers
             return View(customer);
         }
 
-        // GET: Customers/Edit/5
-        //public async Task<IActionResult> Edit(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var customer = await _context.Customer.FindAsync(id);
-        //    if (customer == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return View(customer);
-        //}
-
-        // POST: Customers/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+       
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Customer customer)
-        //{
-        //    if (id != customer.Id)
-        //    {
-        //        return NotFound();
-        //    }
+       
 
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            _context.Update(customer);
-        //            await _context.SaveChangesAsync();
-        //        }
-        //        catch (DbUpdateConcurrencyException)
-        //        {
-        //            if (!CustomerExists(customer.Id))
-        //            {
-        //                return NotFound();
-        //            }
-        //            else
-        //            {
-        //                throw;
-        //            }
-        //        }
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    return View(customer);
-        //}
-
-        // GET: Customers/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -144,7 +94,7 @@ namespace Talor_music.Controllers
             return View(customer);
         }
 
-        // POST: Customers/Delete/5
+        
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

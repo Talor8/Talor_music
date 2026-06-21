@@ -25,7 +25,7 @@ namespace Talor_music.Controllers
         [HttpGet]
         public IActionResult Index(int playlistId)
         {
-            // תיקון: PlayListSong עם L גדולה בדיוק כמו ב-Context שלך
+           
             var playlist = _context.PlayListSong
                 .Include(p => p.Songs)
                 .FirstOrDefault(p => p.PlaylistSongID == playlistId);
@@ -84,7 +84,7 @@ namespace Talor_music.Controllers
 
             // קיזוז שירים שנקנו בכל הזמנה של המשתמש
             var purchasedSongIds = _context.OrderItems
-                .Include(oi => oi.Order) // <--- זה התיקון הקריטי ביותר
+                .Include(oi => oi.Order) 
                 .Where(oi => oi.Order != null && ( // הגנה מפני null
                              oi.Order.CustomerID == userId ||
                              oi.Order.CustomerID == userEmail ||
@@ -142,8 +142,8 @@ namespace Talor_music.Controllers
             {
                 CustomerID = userId,
                 OrderDate = DateTime.Now,
-                // הנה התיקון: את חייבת להוסיף את השדה הזה
-                CardLastFourDigits = "0000" // תכניסי כאן ערך זמני או את ה-4 ספרות שחזרו מהתשלום
+        
+                CardLastFourDigits = "0000" // ערך זמני
             };
             _context.Orders.Add(order);
             _context.SaveChanges();

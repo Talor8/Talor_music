@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization; // הוספתי את ה-Using הזה עבור ההרשאות
+using Microsoft.AspNetCore.Authorization; //  עבור ההרשאות
 using Talor_music.Data;
 using Talor_music.Models;
 
@@ -20,14 +20,14 @@ namespace Talor_music.Controllers
             _context = context;
         }
 
-        // --- כולם יכולים לראות את רשימת האמנים ---
+        // כולם יכולים לראות את רשימת האמנים 
         public async Task<IActionResult> Index()
         {
             return View(await _context.Artist.ToListAsync());
         }
 
-        // --- כולם יכולים לראות פרטי אמן ---
-        // GET: Artists/Details/5
+        //  כולם יכולים לראות פרטי אמן 
+        
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -35,7 +35,7 @@ namespace Talor_music.Controllers
                 return NotFound();
             }
 
-            // Include(a => a.Songs) - זה החלק שמושך את השירים מהטבלה השנייה
+            // זה החלק שמושך את השירים מהטבלה השנייה
             var artist = await _context.Artist
                 .Include(a => a.Songs)
                 .FirstOrDefaultAsync(m => m.ArtistID == id);
@@ -48,7 +48,7 @@ namespace Talor_music.Controllers
             return View(artist);
         }
 
-        // --- רק מנהל יכול ליצור אמן חדש ---
+        //  רק מנהל יכול ליצור אמן חדש 
         [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
@@ -69,7 +69,7 @@ namespace Talor_music.Controllers
             return View(artist);
         }
 
-        // --- רק מנהל יכול לערוך אמן ---
+        //  רק מנהל יכול לערוך אמן 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -104,7 +104,7 @@ namespace Talor_music.Controllers
             return View(artist);
         }
 
-        // --- רק מנהל יכול למחוק אמן ---
+        // רק מנהל יכול למחוק אמן 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {

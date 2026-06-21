@@ -12,7 +12,7 @@ using System.Security.Claims;
 
 namespace Talor_music.Controllers
 {
-    // ניתן להוסיף [Authorize] גם כאן אם רוצים שכל הדף ידרוש התחברות
+   
     public class PlayListSongsController : Controller
     {
         private readonly Talor_musicContext _context;
@@ -27,7 +27,7 @@ namespace Talor_music.Controllers
         {
             var userEmail = User.Identity?.Name;
 
-            // הוספנו Include(p => p.Songs) כדי שהמחיר יתעדכן בטבלה
+            //  כדי שהמחיר יתעדכן בטבלה
             var query = _context.PlayListSong
                 .Include(p => p.Customer)
                 .Include(p => p.Songs)
@@ -92,8 +92,7 @@ namespace Talor_music.Controllers
 
             ViewBag.AllSongs = await _context.Song.ToListAsync();
 
-            // התיקון המנצח: מחפשים את ההזמנות של המשתמש בכל דרך אפשרית 
-            // (למקרה שנשמר כ-ID של זהות, כאימייל, או כ-ID של טבלת לקוחות)
+
             var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
             var userEmail = User.Identity?.Name;
             var customer = await _context.Customer.FirstOrDefaultAsync(c => c.Email == userEmail);
@@ -139,7 +138,7 @@ namespace Talor_music.Controllers
             return View(playListSong);
         }
 
-        // שאר הפונקציות (Delete, Edit) - מומלץ להוסיף להן גם [Authorize]
+        
         [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
