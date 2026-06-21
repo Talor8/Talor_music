@@ -22,17 +22,26 @@ namespace Talor_music.Controllers
         // GET: Customers
         public IActionResult Index()
         {
-            // במקום לשלוח _context.Users (שהם משתמשי Identity), 
-            // אנחנו שולחים את הטבלה שנקראת Customer שמוגדרת ב-DbContext שלך
+            // 1. שליפת כל הלקוחות עבור הטבלה
             var customers = _context.Customer.ToList();
 
-            // חישוב הכנסות בטוח
-            ViewBag.TotalRevenue = _context.Orders.Any() ? _context.Orders.Sum(o => o.TotalAmount) : 0;
+            // 2. שליפת כל הפריטים שנמכרו מהמסד לזיכרון, כולל פרטי ההזמנה
+            var allOrderItems = _context.OrderItems
+                                        .Include(oi => oi.Order)
+                                        .ToList();
 
-            return View(customers); 
+            // 3. חישוב הכנסות ללא כפילויות:
+            // קיבוץ לפי לקוח ושיר, לקיחת הרשומה הראשונה מכל קבוצה, וסכימת המחירים
+            ViewBag.TotalRevenue = allOrderItems
+                .GroupBy(oi => new { oi.Order.CustomerID, oi.SongID })
+                .Select(g => g.First())
+                .Sum(oi => oi.PriceAtPurchase);
+
+            // 4. החזרת הלקוחות לתצוגה
+            return View(customers);
         }
 
-    
+
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)

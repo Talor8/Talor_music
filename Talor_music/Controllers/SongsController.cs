@@ -43,7 +43,6 @@ namespace Talor_music.Controllers
         {
             if (id == null) return NotFound();
 
-            // הוספנו Include ל-Reviews וגם ל-Customer שכתב כל ביקורת
             var song = await _context.Song
                 .Include(s => s.Artist)
                 .Include(s => s.Reviews)
